@@ -21,12 +21,12 @@ enum SettingsWindowMetrics {
     /// this and the column stops growing, so the extra is empty margin.
     static let simpleDefault = CGSize(
         width: SettingsDetailLayout.columnMaxWidth + (SettingsDetailLayout.titleHorizontalInset * 2),
-        height: 640
+        height: 600
     )
 
     /// Low enough to let someone shrink past the reading column when they want
     /// the window out of the way; the grouped rows reflow rather than clip.
-    static let simpleMinimum = CGSize(width: 560, height: 480)
+    static let simpleMinimum = CGSize(width: 560, height: 440)
 
     static func minimum(simpleMode: Bool) -> CGSize {
         simpleMode ? simpleMinimum : fullMinimum

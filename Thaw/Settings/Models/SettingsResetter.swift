@@ -33,6 +33,7 @@ extension AppSettings {
         general.lastCustomThawIcon = nil
         general.customThawIconIsTemplate = Defaults.DefaultValue.customThawIconIsTemplate
         general.simpleMode = Defaults.DefaultValue.simpleMode
+        general.simpleModeShowsPreview = Defaults.DefaultValue.simpleModeShowsPreview
         general.showSettingDescriptions = Defaults.DefaultValue.showSettingDescriptions
         general.lockThawBarPosition = Defaults.DefaultValue.lockThawBarPosition
         general.openHiddenItemsInMenuBar = Defaults.DefaultValue.openHiddenItemsInMenuBar

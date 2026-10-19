@@ -184,6 +184,8 @@ nonisolated enum SearchIndex {
         .general("thawIconPersistenceError"),
         // The radius slider shows only under Round screen corners.
         .general("screenCornerRadius"),
+        // Its switch is on Simple Mode's one page, which has no search.
+        .general("simpleModeShowsPreview"),
         // The Everything option of the Hiding method picker, indexed under
         // advanced.enableNativeAppHiding.
         .advanced("enableExperimentalSystemItemHiding"),

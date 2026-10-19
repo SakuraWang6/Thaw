@@ -6,6 +6,7 @@
 //  Licensed under the GNU GPLv3
 
 import Foundation
+@testable import Thaw
 
 /// Removing a throwaway suite's domain leaves an empty plist in ~/Library/Preferences, so this deletes the file too.
 /// Main actor only, since removing a domain posts a defaults change the app observes on the main thread.
@@ -15,6 +16,22 @@ enum ScratchDefaults {
         UserDefaults.standard.removePersistentDomain(forName: name)
         CFPreferencesAppSynchronize(name as CFString)
         try? FileManager.default.removeItem(at: URL.libraryDirectory.appending(path: "Preferences/\(name).plist"))
+    }
+
+    /// Runs body with Defaults reading and writing a throwaway suite, then
+    /// puts the real store back and deletes the suite.
+    static func withStore(named prefix: String, _ body: (UserDefaults) throws -> Void) throws {
+        let name = "\(prefix).\(UUID().uuidString)"
+        guard let store = UserDefaults(suiteName: name) else {
+            throw CocoaError(.featureUnsupported)
+        }
+        let previous = Defaults.store
+        Defaults.store = store
+        defer {
+            Defaults.store = previous
+            remove(name)
+        }
+        try body(store)
     }
 }
 

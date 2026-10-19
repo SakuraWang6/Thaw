@@ -11,10 +11,6 @@ import ThawUI
 
 /// The menu bar icon picker, including the custom-image importer and the
 /// template-rendering toggle that only applies to a custom icon.
-///
-/// Extracted from GeneralSettingsPane so Simple Mode can present the same
-/// control: choosing the icon is one of the few things a Simple Mode user still
-/// wants, and a second copy would be a second thing to keep in sync.
 struct ThawIconPicker: View {
     @Environment(AppState.self) private var appState
     @Bindable var settings: GeneralSettings

@@ -340,8 +340,6 @@ private struct LayoutSpacersRows: View {
     }
 }
 
-/// The drag-and-drop icon editor. Not private: Simple Mode presents this same
-/// editor as its whole screen.
 struct LayoutBarsSection: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(AppState.self) private var appState
@@ -374,9 +372,9 @@ struct LayoutBarsSection: View {
         layoutRefusalNotice
     }
 
-    /// Not inside the pop-out itself, and not in Simple Mode's single screen.
+    /// Not inside the pop-out itself.
     private var showsPopOutButton: Bool {
-        !appState.navigationState.isLayoutEditorPresented && !appState.settings.general.simpleMode
+        !appState.navigationState.isLayoutEditorPresented
     }
 
     private var popOutButton: some View {
@@ -417,7 +415,6 @@ struct LayoutBarsSection: View {
     }
 }
 
-/// Share layout recovery with SimpleModeSettingsPane so correcting mistakes does not require advanced tuning.
 struct LayoutResetControls: View {
     let itemManager: MenuBarItemManager
     let controlItemsDisabled: Bool
@@ -430,27 +427,18 @@ struct LayoutResetControls: View {
             LayoutResetFlow(
                 itemManager: itemManager,
                 controlItemsDisabled: controlItemsDisabled,
-                alwaysHiddenEnabled: alwaysHiddenEnabled,
-                presentation: .card
+                alwaysHiddenEnabled: alwaysHiddenEnabled
             )
         }
     }
 }
 
-/// Reset appears in a titled section here and a quiet footnote under Simple Mode's folded bar.
+/// Reset, in its titled section: a sentence beside a glass button.
 struct LayoutResetFlow: View {
-    enum Presentation {
-        /// Explanatory sentence beside a glass button, inside a card.
-        case card
-        /// A trailing text button alone; the confirm row explains itself.
-        case footnote
-    }
-
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let itemManager: MenuBarItemManager
     let controlItemsDisabled: Bool
     let alwaysHiddenEnabled: Bool
-    var presentation: Presentation = .card
 
     @State private var isResetting = false
     @State private var isConfirming = false
@@ -459,11 +447,9 @@ struct LayoutResetFlow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top, spacing: 12) {
-                if presentation == .card {
-                    Text("Moves every movable item except the \(Constants.displayName) icon to the selected section, just like a fresh install.")
-                        .font(ThawType.footnote)
-                        .foregroundStyle(ThawInk.supporting)
-                }
+                Text("Moves every movable item except the \(Constants.displayName) icon to the selected section, just like a fresh install.")
+                    .font(ThawType.footnote)
+                    .foregroundStyle(ThawInk.supporting)
                 Spacer(minLength: 16)
                 trigger
                     .disabled(isResetting || controlItemsDisabled)
@@ -498,34 +484,17 @@ struct LayoutResetFlow: View {
         }
     }
 
-    @ViewBuilder
     private var trigger: some View {
-        switch presentation {
-        case .card:
-            Button {
-                isConfirming = true
-            } label: {
-                if isResetting {
-                    ProgressView().controlSize(.small)
-                } else {
-                    Text("Reset Layout…")
-                }
+        Button {
+            isConfirming = true
+        } label: {
+            if isResetting {
+                ProgressView().controlSize(.small)
+            } else {
+                Text("Reset Layout…")
             }
-            .buttonStyle(.settingsGlass)
-        case .footnote:
-            Button {
-                isConfirming = true
-            } label: {
-                if isResetting {
-                    ProgressView().controlSize(.small)
-                } else {
-                    Text("Reset Layout…")
-                        .font(.footnote.weight(.medium))
-                        .foregroundStyle(ThawInk.supporting)
-                }
-            }
-            .buttonStyle(.plain)
         }
+        .buttonStyle(.settingsGlass)
     }
 
     private var resetTransition: AnyTransition {
@@ -613,7 +582,7 @@ struct LayoutResetFlow: View {
     }
 }
 
-/// Not private: Simple Mode shows the same gate.
+/// Shown instead of the editor while macOS auto-hides the menu bar.
 struct CannotArrangeLayoutView: View {
     var body: some View {
         ThawEmptyState(

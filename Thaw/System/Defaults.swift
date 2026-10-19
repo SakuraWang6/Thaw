@@ -120,6 +120,7 @@ nonisolated enum Defaults {
             .customThawIconIsTemplate: DefaultValue.customThawIconIsTemplate,
             .simpleMode: DefaultValue.simpleMode,
             .showSettingDescriptions: DefaultValue.showSettingDescriptions,
+            .simpleModeShowsPreview: DefaultValue.simpleModeShowsPreview,
             .lockThawBarPosition: DefaultValue.lockThawBarPosition,
             .openHiddenItemsInMenuBar: DefaultValue.openHiddenItemsInMenuBar,
             .roundScreenCorners: DefaultValue.roundScreenCorners,
@@ -226,6 +227,7 @@ extension Defaults {
         static let customThawIconIsTemplate = false
         static let simpleMode = false
         static let showSettingDescriptions = true
+        static let simpleModeShowsPreview = true
         static let lockThawBarPosition = true
         static let openHiddenItemsInMenuBar = false
         static let roundScreenCorners = false
@@ -375,6 +377,7 @@ extension Defaults {
         case customThawIconIsTemplate = "CustomIceIconIsTemplate"
         case simpleMode = "SimpleMode"
         case showSettingDescriptions = "ShowSettingDescriptions"
+        case simpleModeShowsPreview = "SimpleModeShowsPreview"
         case lastSettingsPane = "LastSettingsPane"
         case hiddenSidebarPanes = "HiddenSidebarPanes"
         case settingsInOwnProcess = "SettingsInOwnProcess"
