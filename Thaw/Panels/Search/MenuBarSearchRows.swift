@@ -31,19 +31,19 @@ enum MenuBarSearchListContent: View {
 
     var body: some View {
         switch self {
+        // The same small heading as the settings sidebar's, so the panel's
+        // groups read like the window's.
         case let .header(name):
-            Text(name.localized)
-                .fontWeight(.semibold)
-                .foregroundStyle(.secondary)
+            ThawListHeading(Text(name.localized))
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.vertical, ThawSpacing.row)
+                .padding(.top, ThawSpacing.row)
+                .padding(.bottom, ThawSpacing.tight)
                 .padding(.leading, ThawSpacing.compact)
         case let .label(text):
-            Text(text)
-                .fontWeight(.semibold)
-                .foregroundStyle(.secondary)
+            ThawListHeading(Text(text))
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.vertical, ThawSpacing.row)
+                .padding(.top, ThawSpacing.row)
+                .padding(.bottom, ThawSpacing.tight)
                 .padding(.leading, ThawSpacing.compact)
         case let .item(item):
             MenuBarItemRow(item: item)
