@@ -13,18 +13,6 @@ import Testing
 @Suite("Wide display rule", .serialized)
 @MainActor
 struct WideDisplayRuleTests {
-    private func withStore(_ body: (UserDefaults) throws -> Void) throws {
-        let suite = "WideDisplayRuleTests.\(UUID().uuidString)"
-        let store = try #require(UserDefaults(suiteName: suite))
-        let previousStore = Defaults.store
-        Defaults.store = store
-        defer {
-            Defaults.store = previousStore
-            ScratchDefaults.remove(suite)
-        }
-        try body(store)
-    }
-
     @Test("A display at least as wide as the minimum shows every item")
     func wideDisplayShowsEverything() {
         #expect(WideDisplayRule.applies(isEnabled: true, screenWidth: 2560, minimumWidth: 2560))
@@ -38,62 +26,52 @@ struct WideDisplayRuleTests {
         #expect(!WideDisplayRule.applies(isEnabled: false, screenWidth: 3008, minimumWidth: 2560))
     }
 
-    @Test("The rule starts off at 2,560 points")
+    @Test("The rule starts off at 2,560 points", .scratchDefaults)
     func defaults() throws {
-        try withStore { _ in
-            let rule = WideDisplayRule()
-            #expect(!rule.isEnabled)
-            #expect(rule.minimumWidth == 2560)
-        }
+        let rule = WideDisplayRule()
+        #expect(!rule.isEnabled)
+        #expect(rule.minimumWidth == 2560)
     }
 
-    @Test("Changes are saved and read back")
+    @Test("Changes are saved and read back", .scratchDefaults)
     func persists() throws {
-        try withStore { _ in
-            let rule = WideDisplayRule()
-            rule.isEnabled = true
-            rule.minimumWidth = 3200
-            let reloaded = WideDisplayRule()
-            #expect(reloaded.isEnabled)
-            #expect(reloaded.minimumWidth == 3200)
-        }
+        let rule = WideDisplayRule()
+        rule.isEnabled = true
+        rule.minimumWidth = 3200
+        let reloaded = WideDisplayRule()
+        #expect(reloaded.isEnabled)
+        #expect(reloaded.minimumWidth == 3200)
     }
 
-    @Test("The rule asks for the width of the display it is given")
+    @Test("The rule asks for the width of the display it is given", .scratchDefaults)
     func readsTheDisplayWidth() throws {
-        try withStore { _ in
-            let rule = WideDisplayRule(screenWidth: { $0 == 2 ? 3008 : 1512 })
-            rule.isEnabled = true
-            #expect(rule.showsEveryItem(on: 2))
-            #expect(!rule.showsEveryItem(on: 1))
-        }
+        let rule = WideDisplayRule(screenWidth: { $0 == 2 ? 3008 : 1512 })
+        rule.isEnabled = true
+        #expect(rule.showsEveryItem(on: 2))
+        #expect(!rule.showsEveryItem(on: 1))
     }
 
-    @Test("The rule counts as always showing hidden items, on any display it covers")
+    @Test("The rule counts as always showing hidden items, on any display it covers", .scratchDefaults)
     func displaySettingsFollowTheRule() throws {
-        try withStore { _ in
-            let manager = DisplaySettingsManager()
-            #expect(!manager.isAlwaysShowEnabledOnAnyDisplay)
-            manager.wideDisplayRule.isEnabled = true
-            #expect(manager.isAlwaysShowEnabledOnAnyDisplay)
-            let displayID = CGMainDisplayID()
-            #expect(manager.alwaysShowHiddenItems(for: displayID) == manager.wideDisplayRule.showsEveryItem(on: displayID))
-        }
+        let manager = DisplaySettingsManager()
+        #expect(!manager.isAlwaysShowEnabledOnAnyDisplay)
+        manager.wideDisplayRule.isEnabled = true
+        #expect(manager.isAlwaysShowEnabledOnAnyDisplay)
+        let displayID = CGMainDisplayID()
+        #expect(manager.alwaysShowHiddenItems(for: displayID) == manager.wideDisplayRule.showsEveryItem(on: displayID))
     }
 
-    @Test("Resetting the display settings turns the rule off at its default width")
+    @Test("Resetting the display settings turns the rule off at its default width", .scratchDefaults)
     func resetTurnsTheRuleOff() throws {
-        try withStore { _ in
-            let settings = AppSettings()
-            settings.displaySettings.wideDisplayRule.isEnabled = true
-            settings.displaySettings.wideDisplayRule.minimumWidth = 3200
-            settings.advanced.skippedModuleStandIns = ["airdrop"]
-            settings.resetDisplay()
-            settings.resetAdvanced()
-            #expect(!settings.displaySettings.wideDisplayRule.isEnabled)
-            #expect(settings.displaySettings.wideDisplayRule.minimumWidth == 2560)
-            #expect(settings.advanced.skippedModuleStandIns == Set(Defaults.DefaultValue.skippedModuleStandIns))
-        }
+        let settings = AppSettings()
+        settings.displaySettings.wideDisplayRule.isEnabled = true
+        settings.displaySettings.wideDisplayRule.minimumWidth = 3200
+        settings.advanced.skippedModuleStandIns = ["airdrop"]
+        settings.resetDisplay()
+        settings.resetAdvanced()
+        #expect(!settings.displaySettings.wideDisplayRule.isEnabled)
+        #expect(settings.displaySettings.wideDisplayRule.minimumWidth == 2560)
+        #expect(settings.advanced.skippedModuleStandIns == Set(Defaults.DefaultValue.skippedModuleStandIns))
     }
 }
 
