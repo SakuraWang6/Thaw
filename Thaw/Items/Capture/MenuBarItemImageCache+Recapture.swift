@@ -560,9 +560,10 @@ extension MenuBarItemImageCache {
         let maxAttempts = 20
         var previousByIdentifier = [String: MenuBarItem]()
         var settledByIdentifier = [String: MenuBarItem]()
+        let deadline = ContinuousClock.now + Constants.MenuBarTuning.revealCaptureSettleBudget
 
         for attempt in 0 ..< maxAttempts {
-            guard !Task.isCancelled else { return [] }
+            guard !Task.isCancelled, ContinuousClock.now < deadline else { break }
 
             let liveItems = await MenuBarItem.getMenuBarItems(
                 on: displayID,

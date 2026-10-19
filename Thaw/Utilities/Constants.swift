@@ -109,6 +109,9 @@ nonisolated enum Constants {
         /// screenshot, so MenuBarAgent finishes compositing the revealed glyph.
         /// Without this the crop captures a partially-rendered icon.
         static let layoutPrewarmRenderSettle: Duration = .milliseconds(200)
+        /// How long revealed items may stay out while they settle for a capture. Each poll reads the whole bar,
+        /// which takes seconds with many apps, so the limit is time, not a poll count.
+        static let revealCaptureSettleBudget: Duration = .seconds(3)
         /// Window after a native menu-bar visibility change during which Thaw
         /// defers its own mutations, letting the system settle the new layout
         /// before Thaw reorders or reveals items on top of it.

@@ -110,6 +110,10 @@ extension MenuBarItemManager {
             await cacheItemsRegardless(skipRecentMoveCheck: true, skipSavedLayoutApply: true)
             guard !Task.isCancelled else { return }
             adoptObservedMembership(reason: reason, afterUserDrag: afterUserDrag)
+            manualMembershipTask = nil
+            // The structural pass held off while this read the bar, so it runs
+            // now, from the sections just read.
+            scheduleStructuralNormalization(cause: afterUserDrag ? .userDragEnded : .rearmed)
         }
     }
 }

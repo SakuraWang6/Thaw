@@ -19,6 +19,11 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 
 - **What's New lists Stable, Beta and Alpha releases separately.** It opens on the channel you're on, and the Experiments link at the bottom is gone. By @diazdesandi.
 
+### Fixed
+
+- **A ⌘-drag into another section sticks the first time.** Thaw could put the dragged icon back in its old section a few seconds after you dropped it, so you had to drag it again. By @diazdesandi.
+- **Hidden items go away again quickly after Settings opens.** Opening Settings briefly shows hidden items to take pictures of their icons. With many apps running, some, such as Stats, could stay on the bar for over 15 seconds. They now go away within about 3 seconds. By @diazdesandi.
+
 ## [3.0.0-beta.3] - 2026-10-19
 
 **macOS 27 only · Build 116**
