@@ -19,4 +19,16 @@ struct ArrayNeighborTests {
         #expect(list.neighbor(of: "c", by: 1) == nil)
         #expect(list.neighbor(of: "z", by: 1) == nil)
     }
+
+    @Test("Up and down step through a vertical list, left and right move nothing")
+    func stepsByMoveDirection() {
+        let list = ["a", "b", "c"]
+        #expect(list.neighbor(of: "b", moving: .down) == "c")
+        #expect(list.neighbor(of: "b", moving: .up) == "a")
+        #expect(list.neighbor(of: "a", moving: .up) == nil)
+        #expect(list.neighbor(of: "c", moving: .down) == nil)
+        #expect(list.neighbor(of: "b", moving: .left) == nil)
+        #expect(list.neighbor(of: "b", moving: .right) == nil)
+        #expect(list.neighbor(of: "z", moving: .down) == nil)
+    }
 }

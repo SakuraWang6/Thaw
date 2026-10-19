@@ -117,15 +117,6 @@ final class AppNavigationState {
         }
     }
 
-    /// Raw values of sidebar destinations the user has hidden. Hidden panes
-    /// stay reachable via search and thaw://; they just leave the sidebar list.
-    var hiddenSidebarPanes: Set<String> = [] {
-        didSet {
-            let array = hiddenSidebarPanes.sorted()
-            Defaults.set(array, forKey: .hiddenSidebarPanes)
-        }
-    }
-
     init() {
         updateCaptureUIState()
         // Restore the full window's last pane for returning from Simple Mode; init assignment does not persist via didSet.
@@ -137,8 +128,7 @@ final class AppNavigationState {
                 settingsNavigationIdentifier = pane
             }
         }
-        if let raw = Defaults.stringArray(forKey: .hiddenSidebarPanes) {
-            hiddenSidebarPanes = Set(raw)
-        }
+        // Panes hidden by the old customizable sidebar show again.
+        Defaults.removeObject(forKey: .hiddenSidebarPanes)
     }
 }
