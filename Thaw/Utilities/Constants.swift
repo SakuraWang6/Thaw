@@ -169,6 +169,9 @@ nonisolated enum Constants {
     /// Info.plist key used to configure the donation URL.
     static let donateURLInfoPlistKey = "ThawDonateURL"
 
+    /// Info.plist key used to configure the Floe URL.
+    static let floeURLInfoPlistKey = "ThawFloeURL"
+
     /// Info.plist key used to configure the community chat URL.
     static let discordURLInfoPlistKey = "ThawDiscordURL"
 
@@ -194,6 +197,9 @@ nonisolated enum Constants {
 
     /// The URL for sponsoring/donating.
     static let donateURL: URL = requiredInfoPlistURL(donateURLInfoPlistKey)
+
+    /// Floe, the team's launcher, which links back to Thaw from its own About.
+    static let floeURL: URL = requiredInfoPlistURL(floeURLInfoPlistKey)
 
     /// The project's community chat.
     static let discordURL: URL = requiredInfoPlistURL(discordURLInfoPlistKey)

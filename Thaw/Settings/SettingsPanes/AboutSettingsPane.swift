@@ -167,6 +167,10 @@ struct AboutSettingsPane: View {
                 Link(destination: Constants.donateURL) {
                     Text("Support Thaw").underline()
                 }
+                footerSeparator
+                Link(destination: Constants.floeURL) {
+                    Text(verbatim: "Floe").underline()
+                }
             }
             .buttonStyle(.plain)
             .fixedSize(horizontal: false, vertical: true)

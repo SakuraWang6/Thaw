@@ -11,6 +11,10 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 
 **macOS 27 only**
 
+### New
+
+- **About links to Floe,** the launcher from the same team. By @diazdesandi.
+
 ### Changed
 
 - **What's New lists Stable, Beta and Alpha releases separately.** It opens on the channel you're on, and the Experiments link at the bottom is gone. By @diazdesandi.
