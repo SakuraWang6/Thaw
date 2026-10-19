@@ -131,21 +131,7 @@ struct MenuBarAppearanceEditor: View {
 
             if hasShape {
                 // The two fills share their controls, so one shows at a time.
-                ThawSection {
-                    ThawTabStrip(selection: $fillTab, items: [
-                        ThawTabStrip.Item(.shapeFill, title: "Inside the Shape", systemImage: "capsule.inset.filled"),
-                        ThawTabStrip.Item(.background, title: "Behind the Shape", systemImage: "rectangle.inset.filled"),
-                    ])
-                    .frame(maxWidth: .infinity)
-                    .onChange(of: appState.navigationState.requestedSettingsDisclosure, initial: true) { _, disclosure in
-                        guard let disclosure, let kind = AppearanceFillKind(disclosure),
-                              SettingsSearchNavigation.consumeDisclosure(disclosure, navigationState: appState.navigationState)
-                        else { return }
-                        fillTab = kind
-                    }
-                } content: {
-                    EmptyView()
-                }
+                SettingsPaneTabs(selection: $fillTab, tabs: [.shapeFill, .background], tabForDisclosure: AppearanceFillKind.init)
                 switch fillTab {
                 case .shapeFill:
                     fillSection(footer: "Fills the shape.", kind: .shapeFill)
@@ -362,9 +348,23 @@ struct MenuBarAppearanceEditor: View {
 
 // MARK: - Appearance Fill Editor
 
-private enum AppearanceFillKind {
+private nonisolated enum AppearanceFillKind: ThawTab {
     case background
     case shapeFill
+
+    var title: LocalizedStringKey {
+        switch self {
+        case .shapeFill: "Inside the Shape"
+        case .background: "Behind the Shape"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .shapeFill: "capsule.inset.filled"
+        case .background: "rectangle.inset.filled"
+        }
+    }
 
     /// The fill a search result opens.
     init?(_ disclosure: AppNavigationState.SettingsDisclosure) {

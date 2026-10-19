@@ -187,20 +187,7 @@ private struct LayoutDetailTabs: View {
         let settings = appState.settings.advanced
         // Groups and Apple's items need the bars, so without them only Options and Spacers are offered.
         let tabs = canArrangeLayout ? LayoutDetailTab.allCases : [.options, .spacers]
-        // A header, not a row: the grouped form gives every row a card, and the
-        // strip would read as one more setting.
-        ThawSection {
-            ThawTabStrip(selection: $tab, tabs: tabs)
-                .frame(maxWidth: .infinity)
-        } content: {
-            EmptyView()
-        }
-        .onChange(of: appState.navigationState.requestedSettingsDisclosure, initial: true) { _, disclosure in
-            guard let disclosure, let target = LayoutDetailTab.tab(for: disclosure),
-                  SettingsSearchNavigation.consumeDisclosure(disclosure, navigationState: appState.navigationState)
-            else { return }
-            tab = target
-        }
+        SettingsPaneTabs(selection: $tab, tabs: tabs, tabForDisclosure: { LayoutDetailTab.tab(for: $0) })
         switch tabs.contains(tab) ? tab : .options {
         case .groups:
             MenuBarLayoutGroupsSection()

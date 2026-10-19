@@ -106,6 +106,9 @@ final class AppNavigationState {
 
     var requestedSettingsDisclosure: SettingsDisclosure?
 
+    /// The section of the search result being opened, so a page with tabs opens the tab holding it.
+    var requestedSettingsSection: String?
+
     /// AppState selects About after window construction; the pane consumes this upgrade request by presenting the changelog.
     var isWhatsNewRequested = false
 
