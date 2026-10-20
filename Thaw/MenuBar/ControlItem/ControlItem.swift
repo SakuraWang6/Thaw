@@ -498,6 +498,10 @@ extension ControlItem {
         return block
     }
 
+    private func needsOffBandRecovery(_ frame: CGRect) -> Bool {
+        OffBandRecoveryRule.needsRecovery(frame, isThawIcon: identifier == .visible, showsIcon: configuration.showThawIcon)
+    }
+
     /// How long a rung has to prove itself before the next one fires.
     static nonisolated let offBandEscalationCooldown: TimeInterval = 5
 
@@ -518,7 +522,7 @@ extension ControlItem {
     private func escalateIfStillOffBand() {
         // A missing window is not health: an item that is added and has none counts as off-band.
         let frame = window?.frame ?? (isAddedToMenuBar ? CGRect.zero : nil)
-        guard let frame, Self.isDegenerateMenuBarFrame(frame) else { return }
+        guard let frame, needsOffBandRecovery(frame) else { return }
         let now = Date.now
         guard now.timeIntervalSince(lastOffBandEscalation) >= Self.offBandEscalationCooldown else {
             noteDegenerateFrame()
@@ -599,11 +603,9 @@ extension ControlItem {
             scheduleRepublishRearmRetry()
             return
         }
-        guard Self.isDegenerateMenuBarFrame(frame) else {
-            // Seated again; give the ladder its budget back.
-            offBandRecoveryExhausted = false
-            offBandRecoveryLevel = 0
-            offBandRecoveryCycle = 0
+        guard needsOffBandRecovery(frame) else {
+            // Seated again, or collapsed on purpose; give the ladder its budget back.
+            restoreOffBandLadder()
             placementBlock = nil
             return
         }
@@ -621,6 +623,13 @@ extension ControlItem {
             break
         }
         scheduleRepublishRearmRetry()
+    }
+
+    /// Gives the escalation ladder its full budget again.
+    private func restoreOffBandLadder() {
+        offBandRecoveryExhausted = false
+        offBandRecoveryLevel = 0
+        offBandRecoveryCycle = 0
     }
 
     /// Restores the re-publish budget after a window the host seated, so the
@@ -704,21 +713,21 @@ extension ControlItem {
         }
     }
 
-    /// Feeds the published geometry from AppKit's KVO streams.
-    ///
-    /// These pipelines write straight into the @Published storage, so they
-    /// need no cancellable bookkeeping and cannot retain the control item. The
-    /// frame streams are debounced because a menu bar reflow walks the item
-    /// through a burst of intermediate positions, and consumers only care where
-    /// it lands.
+    /// Feeds the published geometry from AppKit's KVO streams. The pipelines
+    /// live in cancellables so a rebuild drops the old ones; kept for good they
+    /// would hold every replaced status item and window alive. Frames are
+    /// debounced because a reflow walks the item through intermediate positions.
     private func publishGeometry() {
         statusItem.publisher(for: \.button).removeNil()
-            .flatMap { $0.publisher(for: \.window) }
+            .map { $0.publisher(for: \.window) }
+            .switchToLatest()
             .receive(on: DispatchQueue.main)
-            .assign(to: &$window)
+            .sink { [weak self] in self?.window = $0 }
+            .store(in: &cancellables)
 
         $window.removeNil()
-            .flatMap { $0.publisher(for: \.frame) }
+            .map { $0.publisher(for: \.frame) }
+            .switchToLatest()
             .removeDuplicates()
             .debounce(for: 0.05, scheduler: DispatchQueue.main)
             .sink { [weak self] measuredFrame in
@@ -726,6 +735,8 @@ extension ControlItem {
                 // An item parked at x = -1, or measured with no size, has not
                 // landed in the bar; re-assert the icon instead of publishing it.
                 if Self.isDegenerateMenuBarFrame(measuredFrame) {
+                    // The icon the user turned off measures no width on purpose; nothing to recover.
+                    guard needsOffBandRecovery(measuredFrame) else { return }
                     // Every item measures {0, 0, 1, 0} until its first layout;
                     // only an item that had landed and lost its frame is news.
                     let message = "degenerate status window frame \(NSStringFromRect(measuredFrame))"
@@ -746,14 +757,17 @@ extension ControlItem {
             .store(in: &cancellables)
 
         $window.removeNil()
-            .flatMap { $0.publisher(for: \.screen) }
+            .map { $0.publisher(for: \.screen) }
+            .switchToLatest()
             .removeNil()
-            .flatMap { $0.publisher(for: \.frame) }
+            .map { $0.publisher(for: \.frame) }
+            .switchToLatest()
             .combineLatest($frame.removeNil())
             .removeDuplicates()
             .debounce(for: 0.05, scheduler: DispatchQueue.main)
             .map { screenFrame, frame in screenFrame.intersects(frame) ? frame : nil }
-            .assign(to: &$onScreenFrame)
+            .sink { [weak self] in self?.onScreenFrame = $0 }
+            .store(in: &cancellables)
     }
 
     /// Whether a measured frame means the item never landed; judged by the screens, as a display left of the main one has negative x.
@@ -1050,12 +1064,22 @@ extension ControlItem {
         if lastAppliedThawIconDisplayed == shouldShow, isAddedToMenuBar {
             return
         }
+        let wasTurnedOff = lastAppliedThawIconDisplayed == false
         lastAppliedThawIconDisplayed = shouldShow
 
         if shouldShow {
             updateStatusItem()
+            // The icon the user turns back on gets checked again, in case it doesn't land.
+            if wasTurnedOff {
+                noteDegenerateFrame()
+            }
         } else {
             collapseStatusItem()
+            // Nothing is off-band about an icon the user turned off, so the
+            // ladder starts over with its full budget if it is turned back on.
+            offBandRecoveryTask?.cancel()
+            offBandRecoveryTask = nil
+            restoreOffBandLadder()
         }
     }
 
