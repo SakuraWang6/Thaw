@@ -679,8 +679,7 @@ extension MenuBarItemImageCache {
             hasNotch: NSScreen.screen(for: displayID)?.hasNotch ?? false
         )
         await captureRevealBatches(
-            stride(from: 0, to: items.count, by: batchSize)
-                .map { Array(items[$0 ..< min($0 + batchSize, items.count)]) },
+            items.chunks(ofCount: batchSize),
             controller: controller,
             displayID: displayID,
             admittedDisplayID: admittedDisplayID,
