@@ -32,7 +32,8 @@ extension MenuBarItemManager {
 
     /// Adopt divider-weight membership without moving items: Manual after drags, mode switches, and launch; Automatic only after user drags.
     /// Leave unweighted, unhideable, Thaw Bar Only, and divider-slot items unchanged.
-    func adoptObservedMembership(reason: String, afterUserDrag: Bool = false) {
+    /// keepingAuthored, for the launch read, only places items that have no section yet.
+    func adoptObservedMembership(reason: String, afterUserDrag: Bool = false, keepingAuthored: Bool = false) {
         guard arrangementIsManual || afterUserDrag, let appState else { return }
         let controller = appState.menuBarManager.sectionController
         let items = itemCache.managedItems
@@ -59,7 +60,7 @@ extension MenuBarItemManager {
             else { return nil }
             return .init(item: item, weight: itemWeight, authored: controller.authoredSection(for: item.uniqueIdentifier))
         }
-        for (section, sectionItems) in reading.moves(for: candidates) {
+        for (section, sectionItems) in reading.moves(for: candidates, keepingAuthored: keepingAuthored) {
             MenuBarItemManager.diagLog.info(
                 "observed membership (\(reason)): \(sectionItems.count) item(s) sit in \(section.logString) on the bar: " +
                     sectionItems.map(\.logString).joined(separator: ", ")

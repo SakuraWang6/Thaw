@@ -43,9 +43,9 @@ nonisolated enum ObservedMembership {
         case ordered(Dividers)
 
         /// Nothing moves on a reading that can't be trusted.
-        func moves(for candidates: [Candidate]) -> [(section: MenuBarSectionName, items: [MenuBarItem])] {
+        func moves(for candidates: [Candidate], keepingAuthored: Bool = false) -> [(section: MenuBarSectionName, items: [MenuBarItem])] {
             guard case let .ordered(dividers) = self else { return [] }
-            return ObservedMembership.moves(for: candidates, dividers: dividers)
+            return ObservedMembership.moves(for: candidates, dividers: dividers, keepingAuthored: keepingAuthored)
         }
     }
 
@@ -100,11 +100,18 @@ nonisolated enum ObservedMembership {
     }
 
     /// The items to move, grouped by the section they sit in on the bar, in reading order.
+    /// keepingAuthored leaves every item that already has a section alone, and only
+    /// places the ones that have none: in Manual the stored weights go stale, and
+    /// Layout's sections win over them.
     static func moves(
         for candidates: [Candidate],
-        dividers: Dividers
+        dividers: Dividers,
+        keepingAuthored: Bool = false
     ) -> [(section: MenuBarSectionName, items: [MenuBarItem])] {
         let moving = candidates.compactMap { candidate -> (section: MenuBarSectionName, item: MenuBarItem)? in
+            if keepingAuthored, candidate.authored != nil {
+                return nil
+            }
             let observed = dividers.section(for: candidate.weight)
             return observed == candidate.authored ? nil : (observed, candidate.item)
         }

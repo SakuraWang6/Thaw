@@ -64,6 +64,34 @@ struct SectionReadingPropertyTests {
         }
     }
 
+    @Test("A launch read keeps every section set in Layout, and only places items that have none", arguments: 0 ..< 200)
+    func launchReadKeepsLayoutSections(seed: Int) throws {
+        let random = GKMersenneTwisterRandomSource(seed: UInt64(seed))
+        let dividers = try #require(ObservedMembership.Dividers(hidden: 300, alwaysHidden: 1000, visibleControl: 100))
+        let sections: [MenuBarSectionName?] = [.visible, .hidden, .alwaysHidden, nil]
+        let candidates = (0 ..< 12).map { index in
+            ObservedMembership.Candidate(
+                item: Self.item(index),
+                weight: random.nextInt(upperBound: 2000),
+                authored: sections[random.nextInt(upperBound: sections.count)]
+            )
+        }
+        let moved = ObservedMembership.moves(for: candidates, dividers: dividers, keepingAuthored: true).flatMap(\.items)
+        for item in moved {
+            let candidate = try #require(candidates.first { $0.item.windowID == item.windowID })
+            #expect(candidate.authored == nil, "seed \(seed): a section set in Layout was overwritten")
+        }
+        #expect(moved.count == candidates.filter { $0.authored == nil }.count, "seed \(seed): every item without a section gets one")
+    }
+
+    @Test("Without keeping Layout's sections, a read still moves placed items to where they sit")
+    func readWithoutKeepingMoves() throws {
+        let dividers = try #require(ObservedMembership.Dividers(hidden: 300, alwaysHidden: 1000, visibleControl: 100))
+        let candidate = ObservedMembership.Candidate(item: Self.item(0), weight: 500, authored: .visible)
+        #expect(ObservedMembership.moves(for: [candidate], dividers: dividers).flatMap(\.items).count == 1)
+        #expect(ObservedMembership.moves(for: [candidate], dividers: dividers, keepingAuthored: true).isEmpty)
+    }
+
     @Test("An item already in the section it reads as never moves", arguments: 0 ..< 200)
     func settledItemsStay(seed: Int) throws {
         let random = GKMersenneTwisterRandomSource(seed: UInt64(seed))

@@ -48,6 +48,7 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 - **Clicking Thaw's icon at the very top of the screen closes the Thaw Bar.** On macOS 27 the icon sits a few points below the top edge, so a click above it reopened the Thaw Bar instead of closing it, and counted as a click on an empty part of the menu bar. Reported by @n0tishaan in [#1335](https://github.com/thaw-app/Thaw/issues/1335). Fixed by @diazdesandi.
 - **No more typing hitches with Thaw's icon turned off.** Thaw kept re-adding its hidden icon every minute, and its memory grew each time. Reported by @TianfeiXu in [#1369](https://github.com/thaw-app/Thaw/issues/1369). Fixed by @diazdesandi.
 - **No discolored band when Notification Center opens.** A Clock click or the Notification Center shortcut no longer paints a cover over the bar, which showed as a strip of the wrong color. Reported by @jmstacey in [#1337](https://github.com/thaw-app/Thaw/issues/1337). Fixed by @diazdesandi.
+- **Thaw keeps your sections after a relaunch in Manual arrangement.** It used to move items you had placed in Layout, often all of them to Visible. Reported by @felixkaiser in [#1367](https://github.com/thaw-app/Thaw/issues/1367). Fixed by @diazdesandi.
 
 ## [3.0.0-beta.3] - 2026-10-19
 
