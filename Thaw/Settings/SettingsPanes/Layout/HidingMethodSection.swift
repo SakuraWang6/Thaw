@@ -54,6 +54,9 @@ struct HidingMethodSection: View {
                     Text(method.explanation)
                     if method == .native {
                         nativeStatus
+                    } else if let notice = appState.menuBarManager.nativeAppHidingExperiment.failedStartNotice {
+                        Text(notice)
+                            .foregroundStyle(.orange)
                     }
                 }
             }

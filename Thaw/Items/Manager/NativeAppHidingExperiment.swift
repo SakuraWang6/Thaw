@@ -18,6 +18,13 @@ nonisolated enum NativeHidingStart {
     static func keepsChoice(afterFailedStartAtLaunch isLaunch: Bool) -> Bool {
         isLaunch
     }
+
+    /// What Settings says after a start the user asked for fails. The choice going back to Standard
+    /// would otherwise look like the picker ignoring the click.
+    static func failureNotice(reason: String?) -> String {
+        let reason = reason ?? String(localized: "macOS gave no reason.")
+        return String(localized: "Native didn't start, so \(Constants.displayName) is using Standard: \(reason)")
+    }
 }
 
 /// Follows the switch for native app hiding, supplying the file grant and
@@ -32,6 +39,9 @@ final class NativeAppHidingExperiment {
     var lastError: String? {
         controller.lastError
     }
+
+    /// Why the last start the user asked for failed, until they try Native again.
+    private(set) var failedStartNotice: String?
 
     /// True while apps hidden in an earlier session could not be shown again at launch.
     var previousSessionRecoveryFailed: Bool {
@@ -70,7 +80,9 @@ final class NativeAppHidingExperiment {
                 guard !Task.isCancelled, let self else { return }
                 defer { isLaunch = false }
                 if enabled {
+                    failedStartNotice = nil
                     if !controller.enable(), !NativeHidingStart.keepsChoice(afterFailedStartAtLaunch: isLaunch) {
+                        failedStartNotice = NativeHidingStart.failureNotice(reason: controller.lastError)
                         settings.enableNativeAppHiding = false
                     }
                 } else {

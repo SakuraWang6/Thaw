@@ -41,6 +41,7 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 - **Thaw won't click a menu bar item it can't place.** Right before a click it checks the item's fresh position, and skips it if macOS has the item parked off the bar mid-rearrange, so the click can't land on a neighbor. Thaw also pauses if it starts clicking far more than a person would. By @diazdesandi.
 - **Hidden items no longer flash into the menu bar while Thaw takes pictures of their icons,** such as when Settings or the Thaw Bar opens. Thaw covers that part of the bar with a picture of how it looked. By @diazdesandi.
 - **Thaw uses less memory when other apps read its menus.** While no Thaw window is open, Thaw removes its unused Window menu, so launchers and accessibility tools that read app menus no longer make Thaw use extra memory. By @diazdesandi.
+- **Layout says why Native hiding didn't start.** When you choose Native and it can't start, the picker goes back to Standard as before, and now the reason shows under it. Reported by @gigecogary in [#1368](https://github.com/thaw-app/Thaw/issues/1368). Fixed by @diazdesandi.
 
 ## [3.0.0-beta.3] - 2026-10-19
 
