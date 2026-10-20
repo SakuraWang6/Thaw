@@ -37,6 +37,8 @@ nonisolated enum UpdateChannel: String, CaseIterable, Identifiable {
     }
 
     /// Sparkle channel names to allow in addition to the default channel.
+    /// Alpha also takes betas: a beta is a later build than the alphas before
+    /// it, and releases are tagged with one channel each.
     var allowedSparkleChannels: Set<String> {
         switch self {
         case .stable:
@@ -44,7 +46,7 @@ nonisolated enum UpdateChannel: String, CaseIterable, Identifiable {
         case .beta:
             ["beta"]
         case .alpha:
-            ["alpha"]
+            ["alpha", "beta"]
         }
     }
 }

@@ -43,6 +43,7 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 - **Hidden items no longer flash into the menu bar while Thaw takes pictures of their icons,** such as when Settings or the Thaw Bar opens. Thaw covers that part of the bar with a picture of how it looked. By @diazdesandi.
 - **Thaw uses less memory when other apps read its menus.** While no Thaw window is open, Thaw removes its unused Window menu, so launchers and accessibility tools that read app menus no longer make Thaw use extra memory. By @diazdesandi.
 - **Layout says why Native hiding didn't start.** When you choose Native and it can't start, the picker goes back to Standard as before, and now the reason shows under it. Reported by @gigecogary in [#1368](https://github.com/thaw-app/Thaw/issues/1368). Fixed by @diazdesandi.
+- **Alpha builds get betas too.** Builds on the Alpha channel only looked for alphas, so they never offered beta.3. Now the next beta reaches you without changing the channel. Reported by @bondskin in [#1366](https://github.com/thaw-app/Thaw/issues/1366). Fixed by @diazdesandi.
 
 ## [3.0.0-beta.3] - 2026-10-19
 
