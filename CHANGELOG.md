@@ -30,6 +30,7 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 - **Hidden items go away again quickly after Settings opens.** Opening Settings briefly shows hidden items to take pictures of their icons. With many apps running, some, such as Stats, could stay on the bar for over 15 seconds. They now go away within about 3 seconds. By @diazdesandi.
 - **Right-clicking a hidden item in the Thaw Bar opens its menu without showing the item,** when the app supports it, and a menu that opens a little late is no longer opened a second time. By @diazdesandi.
 - **Thaw won't click a menu bar item it can't place.** Right before a click it checks the item's fresh position, and skips it if macOS has the item parked off the bar mid-rearrange, so the click can't land on a neighbor. Thaw also pauses if it starts clicking far more than a person would. By @diazdesandi.
+- **Hidden items no longer flash into the menu bar while Thaw takes pictures of their icons,** such as when Settings or the Thaw Bar opens. Thaw covers that part of the bar with a picture of how it looked. By @diazdesandi.
 
 ## [3.0.0-beta.3] - 2026-10-19
 

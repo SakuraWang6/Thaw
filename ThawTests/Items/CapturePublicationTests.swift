@@ -529,6 +529,29 @@ struct GroupedRevealPublicationTests {
         return (world, RevealingSectionController(itemManager: world.appState.itemManager))
     }
 
+    @Test("Each batch is covered before its reveal and uncovered after its conceal")
+    func batchesAreCovered() async throws {
+        let (world, controller) = try makeWorld(gated: false)
+        var events: [String] = []
+        await world.cache.captureRevealBatches(
+            [[world.fresh], [world.retried]],
+            controller: controller,
+            displayID: CaptureWorld.display,
+            admittedDisplayID: world.appState.itemManager.itemDisplayID,
+            scale: 2,
+            missPolicy: .dropUntrustedEntries,
+            appState: world.appState,
+            sources: .init(
+                settledItems: { batch in batch.map { (requested: $0, live: $0) } },
+                renderSettle: {},
+                reader: world.reader,
+                cover: { events.append("cover revealed=\(controller.revealed.count)") },
+                uncover: { events.append("uncover concealed=\(controller.concealed.count)") }
+            )
+        )
+        #expect(events == ["cover revealed=0", "uncover concealed=1", "cover revealed=1", "uncover concealed=2"])
+    }
+
     @Test("A reveal that moves the layout generation still publishes its own batch")
     func revealInvalidationDoesNotRejectTheBatch() async throws {
         let (world, controller) = try makeWorld(gated: false)

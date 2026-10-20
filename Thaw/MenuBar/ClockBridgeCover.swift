@@ -10,11 +10,12 @@ import MenuBarModel
 import os.lock
 
 /// Hides the hidden items that flash into the bar while Thaw has to lift its
-/// concealment for a Clock click or the Notification Center shortcut.
+/// concealment: for a Clock click, the Notification Center shortcut, and each
+/// batch an icon capture reveals. Captures never see Thaw's windows, so they
+/// still read the revealed items.
 ///
-/// Only those bridges raise it. Icon capture passes do not: their reveals
-/// run for seconds, and a cover anchored on a misplaced visible item hid
-/// the live bar for the whole pass.
+/// The band is anchored on the live leading edge read at show(), so it can't
+/// sit over visible items, and maximumLifetime bounds how long it stays up.
 ///
 /// The bridge has to drop the whole visibility restriction, because the held
 /// assertion swallows those gestures, and for the second or so it is down

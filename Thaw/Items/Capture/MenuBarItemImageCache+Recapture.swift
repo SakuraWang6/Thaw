@@ -621,6 +621,10 @@ extension MenuBarItemImageCache {
         /// The pause between stable AX bounds and a fully rendered glyph.
         let renderSettle: @MainActor () async -> Void
         let reader: any MenuBarCaptureReading
+        /// Raised before a batch is revealed and lowered after it is concealed,
+        /// so the user sees the bar as it was while the capture sees the reveal.
+        var cover: @MainActor () -> Void = {}
+        var uncover: @MainActor () -> Void = {}
     }
 
     /// Reveals concealed items a few at a time and captures each group from
@@ -686,7 +690,10 @@ extension MenuBarItemImageCache {
             sources: RevealCaptureSources(
                 settledItems: { await self.waitForRevealedItems(matching: $0, displayID: displayID) },
                 renderSettle: { try? await Task.sleep(for: Constants.MenuBarTuning.layoutPrewarmRenderSettle) },
-                reader: LiveMenuBarCaptureReader()
+                reader: LiveMenuBarCaptureReader(),
+                // Captures never see Thaw's own windows, so the cover hides the reveal from the user only.
+                cover: { appState.menuBarManager.clockBridgeCover.show() },
+                uncover: { appState.menuBarManager.clockBridgeCover.hide() }
             )
         )
     }
@@ -713,6 +720,7 @@ extension MenuBarItemImageCache {
             await moveActivity?.waitUntilIdle()
             guard !Task.isCancelled, !skipCaptureWhileScreenLocked("revealing capture batch") else { return }
 
+            sources.cover()
             for item in batch {
                 controller.revealItemTemporarily(item.uniqueIdentifier)
             }
@@ -720,6 +728,7 @@ extension MenuBarItemImageCache {
                 for item in batch {
                     controller.concealTemporarilyRevealedItem(item.uniqueIdentifier)
                 }
+                sources.uncover()
             }
 
             let revealed = await sources.settledItems(batch)
