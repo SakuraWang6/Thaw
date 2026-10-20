@@ -55,6 +55,7 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 - **Replaced Control Center items are the right size in Layout's preview.** With Replace Control Center items on, Thaw's own Focus, AirDrop and other items drew bigger in the preview than the rest, though the menu bar was fine. Reported by Keylag on Discord. Fixed by @diazdesandi.
 - **The popped-out Layout editor takes a drop anywhere in a row.** Like the Layout bars in Settings, it no longer needs the drop near the icons. Reported by Keylag on Discord. Fixed by @diazdesandi.
 - **The Thaw Bar stays closed when Zen Mode ends.** With Always show hidden items on and the Thaw Bar off, leaving Zen Mode, such as when screen sharing stops, could open the Thaw Bar. The hidden items now come back in the menu bar. Reported by Keylag on Discord. Fixed by @diazdesandi.
+- **Automatic update checks run without opening Settings.** Thaw only started checking for updates once Settings had been opened, so it could go days without looking. With Check for updates automatically on, it now checks once a day from launch, and with notifications off, the update window shows itself. Reported by Keylag on Discord. Fixed by @diazdesandi.
 
 ## [3.0.0-beta.3] - 2026-10-19
 

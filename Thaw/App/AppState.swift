@@ -231,6 +231,13 @@ final class AppState {
         groupFolders.performSetup(with: self)
         diagLog.debug("bootstrap: imageCache setup complete")
         updatesManager.performSetup(with: self)
+        if UpdatesManager.startsAtLaunch(
+            supportsSparkle: Constants.supportsSparkleUpdates,
+            hasSeenConsent: Defaults.bool(forKey: .hasSeenUpdateConsent),
+            isSettingsProcess: SettingsProcessApp.isRequested
+        ) {
+            startUpdaterIfNeeded()
+        }
         userNotificationManager.performSetup(with: self)
         profileManager.performSetup(with: self)
         controlCommandObserver.performSetup(with: self)
