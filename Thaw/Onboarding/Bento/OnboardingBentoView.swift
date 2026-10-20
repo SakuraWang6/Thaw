@@ -125,17 +125,11 @@ struct OnboardingBentoView: View {
 
             Spacer()
 
-            Button {
+            OnboardingPrimaryButton {
                 finish(simpleMode: simpleMode, pane: nil)
             } label: {
                 Text(finishesFlow ? "Open \(Constants.displayName)" : "Continue")
-                    .font(ThawType.heading)
-                    // A minimum, not a width: "Open Thaw" is translated and
-                    // a hard 140 clips its longer forms.
-                    .frame(minWidth: 140, minHeight: 34)
             }
-            .buttonStyle(.thawProminent)
-            .keyboardShortcut(.defaultAction)
         }
     }
 

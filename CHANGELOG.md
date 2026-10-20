@@ -20,6 +20,7 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 - **What's New lists Stable, Beta and Alpha releases separately.** It opens on the channel you're on, and the Experiments link at the bottom is gone. By @diazdesandi.
 - **Main buttons and checkboxes are see-through gold,** with dark or light text to match, in place of solid gold with a black label. That covers Continue, Done, Apply and the other main buttons, and the checkboxes in onboarding, Layout and the update prompt. By @diazdesandi.
 - **Shape corners go from square to round on a slider.** In Settings > Appearance, Corners replaces the Round and Square choice, so the shape can be anything in between. Looks you saved keep their ends. By @diazdesandi.
+- **The permissions window looks like the welcome screens.** When a permission goes missing, the window that asks for it again is laid out like onboarding, with its cards two to a row. By @diazdesandi.
 
 ### Fixed
 
