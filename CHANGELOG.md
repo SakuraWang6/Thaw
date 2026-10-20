@@ -33,6 +33,7 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 - **Thaw Bar, Displays and Troubleshooting have tabs too.** Thaw Bar keeps its preview on top, with tabs for this display, the look and the options for all displays. Displays has Spacing, Spaces and Wide Displays, and Troubleshooting has Diagnostics, Repair and Reset. A search result opens the tab that holds it. By @diazdesandi.
 - **The welcome screens replay from the ⋯ menu on About,** instead of Troubleshooting. By @diazdesandi.
 - **Simple Mode fits on one page.** It shows a preview of your sections, which you can turn off, then a few settings: launch at login, item arrangement, when items hide again, the Always Hidden section, the shortcut and automatic updates. Everything else keeps working and stays in the full window. By @diazdesandi.
+- **The profile menu left the Settings toolbar.** Switch profiles from Profiles, the Thaw menu or a shortcut. By @diazdesandi.
 
 ### Fixed
 

@@ -123,14 +123,9 @@ struct SettingsView: View {
                 .navigationTitle(toolbarTitle)
                 .navigationSubtitle(toolbarSubtitle)
                 .toolbar {
-                    // History on the leading edge, the active profile as the
-                    // one chip in the middle, and the overflow menu beside
-                    // search. Swap and Zen Mode live in the overflow menu.
+                    // History on the leading edge, the overflow menu beside search.
                     ToolbarItemGroup(placement: .navigation) {
                         SettingsHistoryButtons(history: paneHistory, navigationState: navigationState)
-                    }
-                    ToolbarItem(placement: .principal) {
-                        SettingsProfileChip(appState: appState, navigationState: navigationState)
                     }
                     ToolbarItem(placement: .primaryAction) {
                         SettingsOverflowMenu(appState: appState, generalSettings: generalSettings)
@@ -471,94 +466,6 @@ private struct SettingsSidebar: View {
             .onChange(of: generalSettings.simpleMode) { _, _ in
                 searchModel.updateDisplayedItems()
             }
-    }
-}
-
-// MARK: - SettingsProfileChip
-
-/// The toolbar's chip for the live profile, with a menu to switch, in the
-/// spot Xcode gives its scheme: the one setting people change most often
-/// without wanting the Profiles pane.
-private struct SettingsProfileChip: View {
-    @Environment(SearchModel.self) private var searchModel
-    let appState: AppState
-    let navigationState: AppNavigationState
-    @State private var errorMessage: String?
-
-    private var profileManager: ProfileManager {
-        appState.profileManager
-    }
-
-    private var activeProfile: ProfileMetadata? {
-        guard let id = profileManager.activeProfileID else {
-            return nil
-        }
-        return profileManager.profiles.first { $0.id == id }
-    }
-
-    private var activeProfileName: String {
-        activeProfile?.name ?? String(localized: "No active profile")
-    }
-
-    /// Loads and applies a profile the way the status item menu does.
-    ///
-    /// Throws rather than swallowing a failed load: a profile that cannot be
-    /// read closes the menu and changes nothing, which reads as the app
-    /// ignoring the choice. Callers surface it the way the Profiles pane
-    /// does, so the same failure says the same thing wherever it happens.
-    static func apply(_ metadata: ProfileMetadata, appState: AppState) throws {
-        let profileManager = appState.profileManager
-        guard metadata.id != profileManager.activeProfileID else {
-            return
-        }
-        let profile = try profileManager.loadProfile(id: metadata.id)
-        let previousID = profileManager.activeProfileID
-        profileManager.activeProfileID = metadata.id
-        profileManager.applyProfile(profile, to: appState, previousProfileID: previousID)
-    }
-
-    var body: some View {
-        Menu {
-            if profileManager.profiles.isEmpty {
-                Text("No profiles saved")
-            } else {
-                ForEach(profileManager.profiles) { profile in
-                    Button {
-                        apply(profile)
-                    } label: {
-                        if profile.id == profileManager.activeProfileID {
-                            Label(profile.name, systemImage: "checkmark")
-                        } else {
-                            Text(profile.name)
-                        }
-                    }
-                }
-            }
-            Divider()
-            Button("Manage Profiles…") {
-                // A sidebar jump ends the search, or the detail column keeps stale results.
-                searchModel.searchText = ""
-                SettingsSearchNavigation.selectSidebarPane(.profiles, navigationState: navigationState)
-            }
-        } label: {
-            Label(activeProfileName, systemImage: "person.crop.rectangle.stack")
-                .labelStyle(.titleAndIcon)
-                .lineLimit(1)
-        }
-        .menuIndicator(.visible)
-        .fixedSize()
-        .help("Active profile")
-        .accessibilityLabel("Active profile")
-        .accessibilityValue(activeProfileName)
-        .errorAlert("Couldn’t switch profile", message: $errorMessage)
-    }
-
-    private func apply(_ metadata: ProfileMetadata) {
-        do {
-            try Self.apply(metadata, appState: appState)
-        } catch {
-            errorMessage = error.localizedDescription
-        }
     }
 }
 
