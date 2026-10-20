@@ -219,7 +219,7 @@ final class MenuBarManager {
     }
 
     /// Covers hidden items that flash during Clock or Notification Center shortcut bridging.
-    let clockBridgeCover = ClockBridgeCover()
+    let revealCover = RevealCover()
 
     /// What the bar is drawn over, for anything that paints over the bar.
     let backdrop = MenuBarBackdrop()
@@ -319,7 +319,7 @@ final class MenuBarManager {
         MenuBarPresentationProvider.startDiagnosticSessionIfGated()
         leadingEdgeWatcher.performSetup(with: appState)
         backdrop.performSetup(with: appState)
-        clockBridgeCover.performSetup(with: appState)
+        revealCover.performSetup(with: appState)
         synchronizeAlwaysShowHiddenItems()
         rebuildItemHotkeys()
     }

@@ -1,5 +1,5 @@
 //
-//  ClockBridgeCover.swift
+//  RevealCover.swift
 //  Project: Thaw
 //
 //  Copyright (Thaw) © 2026 Toni Förster
@@ -7,35 +7,22 @@
 
 import AppKit
 import MenuBarModel
-import os.lock
+import Synchronization
 
-/// Hides the hidden items that flash into the bar while Thaw has to lift its
-/// concealment: for a Clock click, the Notification Center shortcut, and each
-/// batch an icon capture reveals. Captures never see Thaw's windows, so they
-/// still read the revealed items.
-///
-/// The band is anchored on the live leading edge read at show(), so it can't
-/// sit over visible items, and maximumLifetime bounds how long it stays up.
-///
-/// The bridge has to drop the whole visibility restriction, because the held
-/// assertion swallows those gestures, and for the second or so it is down
-/// every concealed item draws left of the visible ones. The visible items do
-/// not move: the bar is anchored right, so the flash is confined to a band
-/// that is otherwise empty bar. This covers that band with what is behind the
-/// bar, so for the length of the bridge the bar looks as it did.
-///
-/// The band is painted with MenuBarBackdrop's strip, captured ahead of
-/// time and without ScreenCaptureKit, so a press never waits on a capture and
-/// never lights the recording indicator.
+/// Covers the band where concealed items flash during an icon capture's reveal
+/// with MenuBarBackdrop's strip, so the bar looks unchanged and no recording
+/// indicator lights. The band ends at the leading edge read at show(), so it
+/// never sits over visible items. Clock and Notification Center get no cover:
+/// the bar restyles itself as they open.
 @MainActor
-final class ClockBridgeCover {
+final class RevealCover {
     private weak var appState: AppState?
     private var panels: [CGDirectDisplayID: NSPanel] = [:]
     private var hideTask: Task<Void, Never>?
     private var watchdog: Task<Void, Never>?
     private var watchdogDeadline: ContinuousClock.Instant?
     private var holders = 0
-    private let diagLog = DiagLog(category: "ClockBridgeCover")
+    private let diagLog = DiagLog(category: "RevealCover")
 
     /// Held after the assertion is back: the host keeps drawing the revealed
     /// items for roughly a second after the restriction returns.
@@ -240,7 +227,7 @@ final class ClockBridgeCover {
         panel.setFrame(cocoa, display: false)
         if !isShowing {
             // The chevron probe hit-tests the bar, and would read the cover.
-            ClockRevealMaskActivity.noteShown()
+            RevealCoverActivity.noteShown()
         }
         panel.orderFrontRegardless()
         panel.registerAsMenuBarOverlay()
@@ -248,13 +235,13 @@ final class ClockBridgeCover {
 
     /// Lays Thaw's own look over the wallpaper, so the covered band matches
     /// the styled bar beside it instead of showing bare wallpaper. See
-    /// ClockBridgeCoverStyle for why this is painted, not captured.
+    /// RevealCoverStyle for why this is painted, not captured.
     private func applyStyle(to layer: CALayer, on displayID: CGDirectDisplayID) {
         layer.sublayers?.removeAll()
         layer.filters = nil
         guard let appState else { return }
         let configuration = appState.appearanceManager.effectiveConfiguration
-        let style = ClockBridgeCoverStyle.style(
+        let style = RevealCoverStyle.style(
             for: configuration.current,
             shapeKind: configuration.shapeKind,
             adaptiveColor: appState.menuBarManager.averageColors[displayID]?.color
@@ -283,7 +270,7 @@ final class ClockBridgeCover {
         watchdog = nil
         watchdogDeadline = nil
         if isShowing {
-            ClockRevealMaskActivity.noteHidden()
+            RevealCoverActivity.noteHidden()
         }
         for panel in panels.values where panel.isVisible {
             panel.unregisterAsMenuBarOverlay()
@@ -324,20 +311,32 @@ final class ClockBridgeCover {
     }
 }
 
-/// Whether a ClockBridgeCover is up, so the nonisolated chevron probe can
+/// Whether a RevealCover is up, so the nonisolated chevron probe can
 /// tell a covered hit-test from a real bar reading.
-nonisolated enum ClockRevealMaskActivity {
-    private static let activeCount = OSAllocatedUnfairLock(initialState: 0)
+nonisolated enum RevealCoverActivity {
+    private static let activeCount = Atomic<Int>(0)
 
     static var isAnyMaskShowing: Bool {
-        activeCount.withLock { $0 > 0 }
+        activeCount.load(ordering: .relaxed) > 0
     }
 
     static func noteShown() {
-        activeCount.withLock { $0 += 1 }
+        activeCount.wrappingAdd(1, ordering: .relaxed)
     }
 
+    /// Counts one cover down, never below zero.
     static func noteHidden() {
-        activeCount.withLock { $0 = max(0, $0 - 1) }
+        var current = activeCount.load(ordering: .relaxed)
+        while current > 0 {
+            let (exchanged, original) = activeCount.compareExchange(
+                expected: current,
+                desired: current - 1,
+                ordering: .relaxed
+            )
+            if exchanged {
+                return
+            }
+            current = original
+        }
     }
 }

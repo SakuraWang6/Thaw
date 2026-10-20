@@ -829,7 +829,7 @@ nonisolated enum MenuBarItemAXProvider {
         // reads the mask, not the bar; hold the last observation instead.
         // The same while Thaw's own menus are in the bar: AppKit answers those
         // hits on this thread and NSMenu asserts off the main one.
-        if ClockRevealMaskActivity.isAnyMaskShowing || isThawTheMenuBarOwner(NSWorkspace.shared.menuBarOwningApplication?.processIdentifier) {
+        if RevealCoverActivity.isAnyMaskShowing || isThawTheMenuBarOwner(NSWorkspace.shared.menuBarOwningApplication?.processIdentifier) {
             if memo.hint == nil, memo.lastAbsentAt == nil {
                 diagLog.debug(
                     "chevron: skipping the strip on display \(display) while it cannot be hit-tested; no absence recorded"

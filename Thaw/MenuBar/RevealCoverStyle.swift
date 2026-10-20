@@ -1,5 +1,5 @@
 //
-//  ClockBridgeCoverStyle.swift
+//  RevealCoverStyle.swift
 //  Project: Thaw
 //
 //  Copyright (Thaw) © 2026 Toni Förster
@@ -7,12 +7,12 @@
 
 import CoreGraphics
 
-/// How ClockBridgeCover paints Thaw's menu bar look over the wallpaper.
+/// How RevealCover paints Thaw's menu bar look over the wallpaper.
 ///
 /// The overlay's glass captures as flat grey, so the cover draws the wallpaper
 /// strip, blurred for glass, under flat washes of the configured fills.
 @MainActor
-enum ClockBridgeCoverStyle {
+enum RevealCoverStyle {
     /// One flat color laid over the wallpaper.
     struct Wash: Equatable {
         let color: CGColor
