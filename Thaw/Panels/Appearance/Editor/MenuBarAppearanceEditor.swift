@@ -24,6 +24,7 @@ struct MenuBarAppearanceEditor: View {
     @State private var editingAppearance = SystemAppearance.current
     @State private var systemAppearance = SystemAppearance.current
     @State private var reducesTransparency = NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
+    @State private var fillTab = AppearanceFillKind.shapeFill
 
     let location: Location
     let onDone: (() -> Void)?
@@ -115,25 +116,42 @@ struct MenuBarAppearanceEditor: View {
 
             // Shape determines which fill controls are available.
             ThawSection {
-                Text("Shape")
+                ThawTabStrip(selection: $appearanceManager.configuration.shapeKind, tabs: MenuBarShapeKind.allCases)
+                    .frame(maxWidth: .infinity)
+                    .accessibilityLabel("Shape")
             } content: {
                 MenuBarShapePicker(configuration: $appearanceManager.configuration)
                 insetToggle
             } footer: {
-                Text("Your menu bar changes as you edit.")
+                VStack(alignment: .leading, spacing: ThawSpacing.compact) {
+                    Text(configuration.shapeKind.caption)
+                    Text("Your menu bar changes as you edit.")
+                }
             }
 
             if hasShape {
-                fillSection(
-                    "Inside the shape",
-                    footer: "Fills the shape.",
-                    kind: .shapeFill
-                )
-                fillSection(
-                    "Behind the shape",
-                    footer: "Fills the whole menu bar. The shape is drawn on top.",
-                    kind: .background
-                )
+                // The two fills share their controls, so one shows at a time.
+                ThawSection {
+                    ThawTabStrip(selection: $fillTab, items: [
+                        ThawTabStrip.Item(.shapeFill, title: "Inside the Shape", systemImage: "capsule.inset.filled"),
+                        ThawTabStrip.Item(.background, title: "Behind the Shape", systemImage: "rectangle.inset.filled"),
+                    ])
+                    .frame(maxWidth: .infinity)
+                    .onChange(of: appState.navigationState.requestedSettingsDisclosure, initial: true) { _, disclosure in
+                        guard let disclosure, let kind = AppearanceFillKind(disclosure),
+                              SettingsSearchNavigation.consumeDisclosure(disclosure, navigationState: appState.navigationState)
+                        else { return }
+                        fillTab = kind
+                    }
+                } content: {
+                    EmptyView()
+                }
+                switch fillTab {
+                case .shapeFill:
+                    fillSection(footer: "Fills the shape.", kind: .shapeFill)
+                case .background:
+                    fillSection(footer: "Fills the whole menu bar. The shape is drawn on top.", kind: .background)
+                }
             } else {
                 fillSection(
                     "Menu bar",
@@ -241,12 +259,10 @@ struct MenuBarAppearanceEditor: View {
         ThawSection {
             LabeledContent("Editing") {
                 HStack(spacing: 8) {
-                    Picker("Appearance mode", selection: $editingAppearance) {
-                        Text("Light").tag(SystemAppearance.light)
-                        Text("Dark").tag(SystemAppearance.dark)
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
+                    ThawTabStrip(selection: $editingAppearance, items: [
+                        ThawTabStrip.Item(.light, title: "Light", systemImage: "sun.max"),
+                        ThawTabStrip.Item(.dark, title: "Dark", systemImage: "moon"),
+                    ])
                     .fixedSize()
 
                     if systemAppearance != editingAppearance {
@@ -314,16 +330,24 @@ struct MenuBarAppearanceEditor: View {
     }
 
     /// Background and shape fill share controls, differing only in title and footer.
-    private func fillSection(_ title: LocalizedStringKey, footer: LocalizedStringKey, kind: AppearanceFillKind) -> some View {
-        ThawSection {
-            Text(title)
-        } content: {
-            UnlabeledAppearanceFillEditor(
-                configuration: editedPartialConfiguration,
-                fillKind: kind
-            )
-        } footer: {
-            Text(footer)
+    /// A fill's controls. A fill picked from the tabs above takes no title, since the tab names it.
+    @ViewBuilder
+    private func fillSection(_ title: LocalizedStringKey? = nil, footer: LocalizedStringKey, kind: AppearanceFillKind) -> some View {
+        let editor = UnlabeledAppearanceFillEditor(configuration: editedPartialConfiguration, fillKind: kind)
+        if let title {
+            ThawSection {
+                Text(title)
+            } content: {
+                editor
+            } footer: {
+                Text(footer)
+            }
+        } else {
+            ThawSection {
+                editor
+            } footer: {
+                Text(footer)
+            }
         }
     }
 
@@ -341,6 +365,15 @@ struct MenuBarAppearanceEditor: View {
 private enum AppearanceFillKind {
     case background
     case shapeFill
+
+    /// The fill a search result opens.
+    init?(_ disclosure: AppNavigationState.SettingsDisclosure) {
+        switch disclosure {
+        case .appearanceInsideShape: self = .shapeFill
+        case .appearanceBehindShape: self = .background
+        default: return nil
+        }
+    }
 }
 
 /// Maps parallel background and shape-fill fields so shared controls need no per-kind switches.

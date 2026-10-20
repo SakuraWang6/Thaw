@@ -8,38 +8,16 @@
 import SwiftUI
 import ThawUI
 
-/// Picks the shape the menu bar appearance is cut to, how round its corners
-/// are, and the margins around it.
-///
-/// The kinds are drawings, not names: "Split" and "Notch" mean nothing until
-/// you see where the bar is cut.
+/// Sets how round the shape's corners are and the margins around it. The editor
+/// picks the shape itself, in the section's header.
 struct MenuBarShapePicker: View {
     @Binding var configuration: MenuBarAppearanceConfigurationV2
 
     var body: some View {
-        kindRow
         if configuration.shapeKind != .noShape {
             cornersRow
             marginsRow
         }
-    }
-
-    // MARK: Kind
-
-    private var kindRow: some View {
-        HStack(alignment: .top, spacing: ThawSpacing.inset) {
-            ForEach(MenuBarShapeKind.allCases) { kind in
-                MenuBarShapeKindOption(
-                    kind: kind,
-                    isSelected: configuration.shapeKind == kind
-                ) {
-                    configuration.shapeKind = kind
-                }
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("Shape")
     }
 
     // MARK: Corners
@@ -126,80 +104,18 @@ nonisolated enum MenuBarShapeRoundness {
     }
 }
 
-/// One shape kind: a drawing of a menu bar with the shape on it, and its name.
-private struct MenuBarShapeKindOption: View {
-    let kind: MenuBarShapeKind
-    let isSelected: Bool
-    let action: () -> Void
-
-    @State private var isHovered = false
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: ThawSpacing.tight) {
-                MenuBarShapeKindDrawing(kind: kind)
-                    .frame(width: 64, height: 18)
-                    .foregroundStyle(isSelected ? AnyShapeStyle(.tint) : AnyShapeStyle(isHovered ? .primary : .secondary))
-                Text(kind.localized)
-                    .font(ThawType.caption)
-                    .fontWeight(isSelected ? .semibold : .regular)
-                    .foregroundStyle(isSelected ? .primary : .secondary)
-            }
-            .padding(ThawSpacing.tight)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .onHover { isHovered = $0 }
-        .accessibilityLabel(Text(kind.localized))
-        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
-        .help(Text(kind.caption))
+/// The shape kinds as tabs in the strip, each named with a symbol for its outline.
+extension MenuBarShapeKind: ThawTab {
+    var title: LocalizedStringKey {
+        localized
     }
-}
 
-/// A menu bar in outline, with the shape filled in. Drawn with Canvas so a
-/// 1 pt outline lands on the pixel grid at this size.
-private struct MenuBarShapeKindDrawing: View {
-    let kind: MenuBarShapeKind
-
-    var body: some View {
-        Canvas { context, size in
-            let bar = CGRect(origin: .zero, size: size).insetBy(dx: 0.5, dy: 0.5)
-            let outline = Path(roundedRect: bar, cornerRadius: 3, style: .continuous)
-            let inset: CGFloat = 3
-            let pillHeight = size.height - inset * 2
-            func pill(_ minX: CGFloat, _ width: CGFloat) -> Path {
-                Path(
-                    roundedRect: CGRect(x: minX, y: inset, width: width, height: pillHeight),
-                    cornerRadius: pillHeight / 2,
-                    style: .continuous
-                )
-            }
-
-            switch kind {
-            case .noShape:
-                // The look covers the whole bar.
-                context.fill(outline, with: .foreground)
-            case .full:
-                context.stroke(outline, with: .foreground, lineWidth: 1)
-                context.fill(pill(inset, size.width - inset * 2), with: .foreground)
-            case .split:
-                context.stroke(outline, with: .foreground, lineWidth: 1)
-                context.fill(pill(inset, size.width * 0.34), with: .foreground)
-                let trailingWidth = size.width * 0.42
-                context.fill(pill(size.width - inset - trailingWidth, trailingWidth), with: .foreground)
-            case .notch:
-                context.stroke(outline, with: .foreground, lineWidth: 1)
-                let notchWidth = size.width * 0.18
-                let notch = CGRect(x: (size.width - notchWidth) / 2, y: 0, width: notchWidth, height: size.height * 0.7)
-                context.fill(
-                    Path(roundedRect: notch, cornerRadius: 2, style: .continuous),
-                    with: .foreground
-                )
-                let sideWidth = (size.width - notchWidth) / 2 - inset * 2
-                context.fill(pill(inset, sideWidth), with: .foreground)
-                context.fill(pill(size.width - inset - sideWidth, sideWidth), with: .foreground)
-            }
+    var systemImage: String {
+        switch self {
+        case .noShape: "rectangle.slash"
+        case .full: "capsule"
+        case .split: "rectangle.split.2x1"
+        case .notch: "macbook"
         }
-        .accessibilityHidden(true)
     }
 }

@@ -18,12 +18,13 @@ struct WhatsNewView: View {
     @State private var selectedVersion: String?
     /// Every Thaw 3 release, newest first; the path shows the chosen channel's.
     @State private var releases: [ChangelogDocument.Release] = []
-    @State private var channel = ReleaseChannel.initial(pendingUpdate: nil, running: Constants.versionString)
+    /// Opens on the running build's channel, so the newest notes for this Mac come first.
+    @State private var channel = UpdateChannel(version: Constants.versionString)
     @State private var source: ChangelogDocument.Source = .unavailable
     @State private var isLoading = true
 
     private var channelReleases: [ChangelogDocument.Release] {
-        releases.filter { ReleaseChannel(version: $0.version) == channel }
+        releases.filter { UpdateChannel(version: $0.version) == channel }
     }
 
     private var selectedRelease: ChangelogDocument.Release? {
@@ -76,7 +77,7 @@ struct WhatsNewView: View {
             releases = loaded.document.map { ChangelogDocument.displayReleases(in: $0) } ?? []
             source = loaded.source
             if let update = appState.pendingUpdateVersion, releases.contains(where: { $0.version == update }) {
-                channel = ReleaseChannel(version: update)
+                channel = UpdateChannel(version: update)
                 selectedVersion = update
             } else if selectedVersion == nil || !releases.contains(where: { $0.version == selectedVersion }) {
                 selectedVersion = channelReleases.first?.version
@@ -85,20 +86,18 @@ struct WhatsNewView: View {
         }
     }
 
-    /// A menu, not a segmented control: ThawUI's style guard keeps segmented controls off Settings pages.
+    /// Tabs, not a segmented control: ThawUI's style guard keeps segmented controls off Settings pages.
     private var channelPicker: some View {
-        ThawPicker("Channel", selection: Binding(
-            get: { channel },
-            set: { newChannel in
-                channel = newChannel
-                selectedVersion = channelReleases.first?.version
-            }
-        )) {
-            ForEach(ReleaseChannel.allCases) { channel in
-                Text(channel.title).tag(channel)
-            }
-        }
-        .fixedSize()
+        ThawTabStrip(
+            selection: Binding(
+                get: { channel },
+                set: { newChannel in
+                    channel = newChannel
+                    selectedVersion = channelReleases.first?.version
+                }
+            ),
+            tabs: UpdateChannel.allCases
+        )
     }
 
     /// Reloads when the Privacy switch flips or an update opens the window,
