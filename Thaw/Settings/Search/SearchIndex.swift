@@ -41,6 +41,13 @@ nonisolated struct SearchEntry: Identifiable, @unchecked Sendable {
         switch id {
         case "layout.spacers":
             .layoutSpacers
+        // Layout's Options tab.
+        case "advanced.menuBarArrangementMode", "advanced.enableAlwaysHiddenSection", "advanced.sectionDividerStyle",
+             "advanced.enableNativeAppHiding", "advanced.enableMenuBarItemOverflow",
+             "advanced.alwaysUseAppIconForMenuBarItems", "layout.resetMenuBarLayout":
+            .layoutOptions
+        case "layout.replaceControlCenterItems":
+            .layoutAppleItems
         // The two app-wide Thaw Bar toggles sit behind the page's disclosure.
         case "general.lockThawBarPosition", "general.thawBarLocationOnHotkey", "general.openHiddenItemsInMenuBar":
             .thawBarAppWideOptions
@@ -103,7 +110,7 @@ nonisolated enum SearchIndex {
             title: "Use app icons instead of live previews",
             descriptionText: String(localized: "Show each item's app icon in the Thaw Bar and Layout instead of a live screenshot."),
             pane: .menuBarLayout,
-            section: "More layout options",
+            section: "Overflow and previews",
             keywords: ["app icon", "live preview", "screenshot", "capture", "overflow", "notch", "advanced layout controls"],
             property: .advanced("alwaysUseAppIconForMenuBarItems")
         ),

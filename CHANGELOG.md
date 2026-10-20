@@ -26,6 +26,7 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 - **Selected rows look the same everywhere.** The Swap Bar's buttons use the same see-through gold as the search results, and the gold follows Reduce Transparency and Increase Contrast. By @diazdesandi.
 - **The search panel and Settings search use the sidebar's headings.** Groups of results have the same small uppercase names as the sidebar's groups. By @diazdesandi.
 - **The sidebar is reorganized.** Thaw's everyday pages come first, from General to Shortcuts, then Profiles, Automation and Experiments under a small Modules heading, then Privacy and Troubleshooting under Manage, and About last. The selected page has a see-through gold fill, and the arrow keys move between pages. The sidebar can't be customized anymore, so every page stays in the same place and pages you had hidden are back. By @diazdesandi.
+- **Layout shows one list at a time.** Under the bars, tabs switch between Options, Groups, Spacers and Apple's Items. Spacers are no longer folded away, Replace Control Center items has its own tab, and settings you rarely change, such as the hiding method, are under Options. Searching for one of them opens its tab. Suggested by Keylag on Discord. By @diazdesandi.
 
 ### Fixed
 

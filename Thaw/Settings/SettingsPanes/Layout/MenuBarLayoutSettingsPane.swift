@@ -132,35 +132,11 @@ struct MenuBarLayoutSettingsPane: View {
                 LayoutBarsSection(itemManager: itemManager).holdsMultiSelectTip(whileLimitationsCardShows: !isLimitationsAcknowledged)
             }
 
-            if canArrangeLayout {
-                MenuBarLayoutGroupsSection()
-            }
-
-            LayoutSectionOptions(
-                settings: appState.settings.advanced,
+            LayoutDetailTabs(
+                itemManager: itemManager,
+                canArrangeLayout: canArrangeLayout,
                 isHidingUnavailable: isHidingUnavailable
             )
-
-            HidingMethodSection(settings: appState.settings.advanced, offersAppleItems: canArrangeLayout)
-
-            // Thaw Bar Only is unplugged; its switch returns to this section with its gate.
-            if canArrangeLayout {
-                ControlCenterReplacementsSection(settings: appState.settings.advanced)
-            }
-
-            LayoutMoreOptionsSection(
-                spacerManager: appState.spacerManager,
-                settings: appState.settings.advanced,
-                navigationState: appState.navigationState
-            )
-
-            if canArrangeLayout {
-                LayoutResetControls(
-                    itemManager: itemManager,
-                    controlItemsDisabled: itemManager.areControlItemsMissing,
-                    alwaysHiddenEnabled: appState.settings.advanced.enableAlwaysHiddenSection
-                )
-            }
         }
         .thawAnimation(ThawMotion.settle, value: showsHideByDragHint)
         .errorAlert("Couldn’t relaunch \(Constants.displayName)", message: $relaunchErrorMessage)
@@ -197,21 +173,63 @@ private struct HiddenSectionOccupancySync: ViewModifier {
     }
 }
 
-/// Keep infrequently changed options in one card below the drag editor.
-/// Only Spacers collapses because its rows grow; single-row options stay open without nested disclosures.
-private struct LayoutMoreOptionsSection: View {
-    let spacerManager: MenuBarSpacerManager
-    @Bindable var settings: AdvancedSettings
-    let navigationState: AppNavigationState
+/// The lists under the bars, one at a time: Options, Groups, Spacers and Apple's Items.
+/// Search results switch to the tab that holds them.
+private struct LayoutDetailTabs: View {
+    @Environment(AppState.self) private var appState
+    let itemManager: MenuBarItemManager
+    let canArrangeLayout: Bool
+    let isHidingUnavailable: Bool
 
-    @State private var isSpacersExpanded = false
+    @State private var tab = LayoutDetailTab.options
 
     var body: some View {
-        ThawSection("More layout options") {
-            DisclosureGroup("Spacers", isExpanded: $isSpacersExpanded) {
-                LayoutSpacersRows(spacerManager: spacerManager)
+        let settings = appState.settings.advanced
+        // Groups and Apple's items need the bars, so without them only Options and Spacers are offered.
+        let tabs = canArrangeLayout ? LayoutDetailTab.allCases : [.options, .spacers]
+        // A header, not a row: the grouped form gives every row a card, and the
+        // strip would read as one more setting.
+        ThawSection {
+            ThawTabStrip(selection: $tab, tabs: tabs)
+                .frame(maxWidth: .infinity)
+        } content: {
+            EmptyView()
+        }
+        .onChange(of: appState.navigationState.requestedSettingsDisclosure, initial: true) { _, disclosure in
+            guard let disclosure, let target = LayoutDetailTab.tab(for: disclosure),
+                  SettingsSearchNavigation.consumeDisclosure(disclosure, navigationState: appState.navigationState)
+            else { return }
+            tab = target
+        }
+        switch tabs.contains(tab) ? tab : .options {
+        case .groups:
+            MenuBarLayoutGroupsSection()
+        case .spacers:
+            ThawSection("Spacers") {
+                LayoutSpacersRows(spacerManager: appState.spacerManager)
             }
+        case .appleItems:
+            ControlCenterReplacementsSection(settings: settings)
+        case .options:
+            LayoutSectionOptions(settings: settings, isHidingUnavailable: isHidingUnavailable)
+            HidingMethodSection(settings: settings, offersAppleItems: canArrangeLayout)
+            LayoutOverflowSection(settings: settings)
+            if canArrangeLayout {
+                LayoutResetControls(
+                    itemManager: itemManager,
+                    controlItemsDisabled: itemManager.areControlItemsMissing,
+                    alwaysHiddenEnabled: settings.enableAlwaysHiddenSection
+                )
+            }
+        }
+    }
+}
 
+private struct LayoutOverflowSection: View {
+    @Bindable var settings: AdvancedSettings
+
+    var body: some View {
+        ThawSection("Overflow and previews") {
             Toggle(
                 "Move items that don’t fit into Hidden",
                 isOn: $settings.enableMenuBarItemOverflow
@@ -229,23 +247,6 @@ private struct LayoutMoreOptionsSection: View {
                 "Show each item's app icon in the Thaw Bar and Layout instead of a live screenshot.",
                 more: "Turn this on if macOS's overflow arrow shows up in item previews. The real menu bar is unaffected."
             )
-
-            // Hide reorder timeout until it has an effect; macOS 27's early-bail probe ends the wait first.
-//            LabeledContent("Reorder timeout") {
-//                ThawSlider(value: $settings.menuBarOrderFulfillmentTimeout, in: 1 ... 15, step: 0.5) {
-//                    SecondsLabel(value: $settings.menuBarOrderFulfillmentTimeout)
-//                }
-//            }
-//            .annotation("How long Thaw waits for macOS to apply a menu bar reorder before continuing with any remaining layout work.")
-        }
-        // Expand Spacers for search deep-links so the target is reachable.
-        .onChange(of: navigationState.requestedSettingsDisclosure, initial: true) { _, _ in
-            if SettingsSearchNavigation.consumeDisclosure(
-                .layoutSpacers,
-                navigationState: navigationState
-            ) {
-                isSpacersExpanded = true
-            }
         }
     }
 }

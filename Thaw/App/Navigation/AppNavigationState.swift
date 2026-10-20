@@ -15,6 +15,10 @@ import ThawCapture
 final class AppNavigationState {
     nonisolated enum SettingsDisclosure: Hashable {
         case layoutSpacers
+        /// Layout's Options tab, which holds the settings you rarely change.
+        case layoutOptions
+        /// Layout's Apple's Items tab.
+        case layoutAppleItems
         /// The Thaw Bar page's app-wide options disclosure.
         case thawBarAppWideOptions
     }
