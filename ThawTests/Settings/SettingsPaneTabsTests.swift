@@ -34,10 +34,11 @@ struct SettingsPaneTabsTests {
         #expect(ThawBarTab(section: "Preview") == nil)
     }
 
-    @Test("The welcome screens are on Diagnostics, and profile shortcuts have their own tab")
-    func betaOnlyTabs() {
-        #expect(TroubleshootingTab(section: "Onboarding") == .diagnostics)
+    @Test("Profile shortcuts have their own tab, and the welcome screens are found on About")
+    func profilesTabAndWelcomeScreens() {
         #expect(ShortcutsTab(section: "Profiles") == .profiles)
+        #expect(SearchIndex.aboutEntries.first { $0.id == "about.replayOnboarding" }?.pane == .about)
+        #expect(!SearchIndex.toolsEntries.contains { $0.id == "about.replayOnboarding" })
     }
 
     @Test("A section is handed to the page once, then forgotten")

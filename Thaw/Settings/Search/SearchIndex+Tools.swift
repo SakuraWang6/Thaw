@@ -16,15 +16,6 @@ nonisolated extension SearchIndex {
     /// drift guard covers it.
     static let toolsEntries: [SearchEntry] = [
         SearchEntry(
-            id: "tools.replayOnboarding",
-            title: "Replay onboarding",
-            descriptionText: String(localized: "Review the feature tour and permission setup again."),
-            pane: .tools,
-            section: "Onboarding",
-            keywords: ["onboarding", "replay", "tour", "welcome", "setup", "permissions", "intro", "tools"],
-            property: nil
-        ),
-        SearchEntry(
             id: "advanced.enableDiagnosticLogging",
             title: "Enable diagnostic logging",
             descriptionText: String(localized: "Writes detailed debug logs to a file for troubleshooting. Log files are saved to ~/Library/Logs/Thaw/."),

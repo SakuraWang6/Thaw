@@ -32,10 +32,7 @@ struct ToolsSettingsPane: View {
 
     var body: some View {
         ThawForm {
-            // Everyday utilities first, then the tools that delete or reset
-            // something, with a reset of everything last, each on its own tab.
-            // What the app observes lives on the Privacy pane, beside the
-            // permissions that allow it.
+            // Diagnostics first, then tools that delete or reset something, with a full reset last.
             SettingsPaneTabs(
                 selection: $tab,
                 tabs: TroubleshootingTab.allCases,
@@ -94,15 +91,6 @@ struct ToolsSettingsPane: View {
 
     @ViewBuilder
     private var diagnosticsTab: some View {
-        ThawSection("Onboarding") {
-            toolRow(
-                title: "Welcome screens",
-                detail: "Show the welcome, access, and setup screens again.",
-                buttonTitle: "Show Again"
-            ) {
-                appState.replayOnboarding()
-            }
-        }
         ThawSection("Diagnostics") {
             diagnosticLogging
         }
@@ -347,7 +335,7 @@ nonisolated enum TroubleshootingTab: CaseIterable, ThawTab {
     /// The tab holding a search result's section.
     init?(section: String) {
         switch section {
-        case "Onboarding", "Diagnostics": self = .diagnostics
+        case "Diagnostics": self = .diagnostics
         case "Repair": self = .repair
         case "Reset": self = .reset
         default: return nil

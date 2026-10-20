@@ -31,6 +31,7 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 - **Layout shows one list at a time.** Under the bars, tabs switch between Options, Groups, Spacers and Apple's Items. Spacers are no longer folded away, Replace Control Center items has its own tab, and settings you rarely change, such as the hiding method, are under Options. Searching for one of them opens its tab. Suggested by Keylag on Discord. By @diazdesandi.
 - **Appearance and What's New use the same tabs.** In Appearance, Light and Dark are pills and the fills inside and behind the shape are tabs, so one fill shows at a time. What's New switches between Stable, Beta and Alpha with tabs. By @diazdesandi.
 - **Thaw Bar, Displays and Troubleshooting have tabs too.** Thaw Bar keeps its preview on top, with tabs for this display, the look and the options for all displays. Displays has Spacing, Spaces and Wide Displays, and Troubleshooting has Diagnostics, Repair and Reset. A search result opens the tab that holds it. By @diazdesandi.
+- **The welcome screens replay from the ⋯ menu on About,** instead of Troubleshooting. By @diazdesandi.
 
 ### Fixed
 

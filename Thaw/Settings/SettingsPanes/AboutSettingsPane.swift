@@ -202,6 +202,7 @@ struct AboutSettingsPane: View {
         let appState = appState
         let openURL = openURL
         menu.addItem(item(String(localized: "Frequent Issues"), "questionmark.circle") { openURL(Constants.frequentIssuesURL) })
+        menu.addItem(item(String(localized: "Show Welcome Screens Again"), "hand.wave") { appState.replayOnboarding() })
         menu.addItem(.separator())
         menu.addItem(item(String(localized: "Join the Discord"), "bubble.left.and.bubble.right") { openURL(Constants.discordURL) })
         menu.addItem(item(String(localized: "Help Translate"), "globe") { openURL(Constants.translateURL) })
