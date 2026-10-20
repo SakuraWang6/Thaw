@@ -245,7 +245,7 @@ public struct MenuBarItem: CustomStringConvertible, Sendable, Codable {
         /// Converts "UpperCamelCase" to "Title Case", but leaves a single
         /// lowercase letter before an uppercase one alone ("WiFi").
         func toTitleCase(_ s: some StringProtocol) -> String {
-            String(s).replacing(/([a-z]{2})([A-Z])/) { $0.output.1 + " " + $0.output.2 }
+            Self.titleCased(s)
         }
 
         guard !isControlItem else {
@@ -322,6 +322,10 @@ public struct MenuBarItem: CustomStringConvertible, Sendable, Codable {
             if tag.namespace == .menuBarAgent {
                 return menuBarAgentDisplayName(preferredTitle: title)
             }
+            // A restored hidden item has no PID, and its tag still names it.
+            if tag.namespace == .systemUIServer, let title {
+                return Self.systemUIServerDisplayName(title: title, tagTitle: tag.title)
+            }
             return namespaceDerivedName ?? fallbackName
         }
 
@@ -360,11 +364,7 @@ public struct MenuBarItem: CustomStringConvertible, Sendable, Codable {
                 toTitleCase(title)
             }
         case .systemUIServer:
-            if let match = title.firstMatch(of: /TimeMachine/) {
-                toTitleCase(match.output)
-            } else {
-                toTitleCase(title)
-            }
+            Self.systemUIServerDisplayName(title: title, tagTitle: tag.title)
         default:
             bestName
         }
@@ -421,5 +421,21 @@ extension MenuBarItem: Hashable {
         hasher.combine(bounds.size.height)
         hasher.combine(title)
         hasher.combine(isOnScreen)
+    }
+}
+
+extension MenuBarItem {
+    /// Splits a camel-cased name into words, as in "TimeMachine" to "Time Machine".
+    static func titleCased(_ s: some StringProtocol) -> String {
+        String(s).replacing(/([a-z]{2})([A-Z])/) { $0.output.1 + " " + $0.output.2 }
+    }
+
+    /// A SystemUIServer item's name. On macOS 27 Time Machine's live title can be
+    /// a bare "Item-0", so its identity in the tag names it when the title doesn't.
+    static func systemUIServerDisplayName(title: String, tagTitle: String) -> String {
+        if let match = title.firstMatch(of: /TimeMachine/) ?? tagTitle.firstMatch(of: /TimeMachine/) {
+            return titleCased(match.output)
+        }
+        return titleCased(title)
     }
 }

@@ -44,6 +44,7 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 - **Thaw uses less memory when other apps read its menus.** While no Thaw window is open, Thaw removes its unused Window menu, so launchers and accessibility tools that read app menus no longer make Thaw use extra memory. By @diazdesandi.
 - **Layout says why Native hiding didn't start.** When you choose Native and it can't start, the picker goes back to Standard as before, and now the reason shows under it. Reported by @gigecogary in [#1368](https://github.com/thaw-app/Thaw/issues/1368). Fixed by @diazdesandi.
 - **Alpha builds get betas too.** Builds on the Alpha channel only looked for alphas, so they never offered beta.3. Now the next beta reaches you without changing the channel. Reported by @bondskin in [#1366](https://github.com/thaw-app/Thaw/issues/1366). Fixed by @diazdesandi.
+- **The Time Machine item is named Time Machine,** not Item-0, in tooltips, search and Layout. Reported by @Macador in [#1333](https://github.com/thaw-app/Thaw/issues/1333). Fixed by @diazdesandi.
 
 ## [3.0.0-beta.3] - 2026-10-19
 
