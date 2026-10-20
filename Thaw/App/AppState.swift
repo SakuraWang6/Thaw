@@ -42,6 +42,10 @@ final class AppState {
     /// The sections, their control items, and the show/hide state machine.
     let menuBarManager = MenuBarManager()
 
+    /// Shared by the menu bar manager, which acts on a display move, and the
+    /// event taps, which ask for a check.
+    private let activeDisplayWatcher = ActiveMenuBarDisplayWatcher()
+
     /// Paints tint, border, shadow and shape over the system menu bar.
     let appearanceManager = MenuBarAppearanceManager()
 
@@ -199,7 +203,7 @@ final class AppState {
         diagLog.debug("bootstrap: permissions state = \(String(describing: self.permissions.permissionsState)), accessibility = \(self.permissions.accessibility.hasPermission), screenRecording = \(self.permissions.screenRecording.hasPermission)")
 
         settings.performSetup(with: self)
-        menuBarManager.performSetup(with: self)
+        menuBarManager.performSetup(with: self, activeDisplayWatcher: activeDisplayWatcher)
         // A refused preferences watcher stays stopped; recreate it after either a table-file grant or Full Disk Access.
         permissions.onPermissionTransition = { [weak self] permission, granted in
             guard let self, granted, permission === permissions.fullDiskAccess else { return }
@@ -208,7 +212,7 @@ final class AppState {
         diagLog.debug("bootstrap: settings and menuBarManager setup complete")
 
         appearanceManager.performSetup(with: self)
-        hidEventManager.performSetup(with: self)
+        hidEventManager.performSetup(with: self, activeDisplayWatcher: activeDisplayWatcher)
         diagLog.debug("bootstrap: starting itemManager setup")
         await itemManager.performSetup(with: self)
         diagLog.debug("bootstrap: itemManager setup scheduled, invalidating menuBarHeightCache")

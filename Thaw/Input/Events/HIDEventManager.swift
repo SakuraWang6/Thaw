@@ -37,6 +37,9 @@ final class HIDEventManager {
     var menuOpenMonitor: MenuOpenMonitor?
     var onScreenItems: OnScreenItemSnapshot?
 
+    /// Asked after clicks and pointer moves, which are what usually move the active menu bar.
+    private var activeDisplayWatcher: ActiveMenuBarDisplayWatcher?
+
     /// The Accessibility answers the taps read instead of querying AX inline.
     let pointerAXCache = MenuBarPointerAXCache()
 
@@ -160,20 +163,6 @@ final class HIDEventManager {
     /// The ID of the display the mouse was last seen on.
     private var lastMouseScreenID: CGDirectDisplayID?
 
-    /// The ID of the display that last had the active menu bar.
-    private var lastActiveMenuBarDisplayID: CGDirectDisplayID?
-
-    /// When the active menu bar display was last asked of the window server.
-    ///
-    /// The pointer stream only needs to notice a display change promptly, not
-    /// on every event, so it re-asks at most once per
-    /// activeMenuBarCheckInterval. Clicks always ask, since a click is
-    /// what moves the menu bar between displays in the first place.
-    private var lastActiveMenuBarCheck: ContinuousClock.Instant?
-
-    /// How long the pointer stream trusts the last active-menu-bar answer.
-    private static let activeMenuBarCheckInterval: Duration = .milliseconds(100)
-
     /// The pending tooltip show task.
     var tooltipTask: Task<Void, any Error>?
 
@@ -212,8 +201,6 @@ final class HIDEventManager {
                 // Forget which display the pointer was last on, so the next
                 // enable recomputes it instead of trusting stale geometry.
                 lastMouseScreenID = nil
-                lastActiveMenuBarDisplayID = nil
-                lastActiveMenuBarCheck = nil
                 return
             }
             for monitor in allMonitors {
@@ -281,38 +268,8 @@ final class HIDEventManager {
         )
         dismissMenuBarTooltip()
 
-        if activeMenuBarDisplayDidChange(rateLimited: false) {
-            appState.menuBarManager.updateControlItemStates()
-        }
-    }
-
-    /// Whether the active menu bar has moved to another display since the
-    /// last time anyone looked, updating lastActiveMenuBarDisplayID.
-    ///
-    /// Each look is a round trip to the window server, and the pointer stream
-    /// asks on every throttled move. A rateLimited caller therefore gets
-    /// false without asking while the previous answer is younger than
-    /// activeMenuBarCheckInterval; the menu bar does not hop between
-    /// displays faster than that, and the stream will re-ask within the same
-    /// window either way. The active display follows focus and clicks rather
-    /// than any one notification, which is why this is rate-limited instead
-    /// of cached against an invalidation set.
-    private func activeMenuBarDisplayDidChange(rateLimited: Bool) -> Bool {
-        let now = ContinuousClock.now
-        if
-            rateLimited,
-            let lastActiveMenuBarCheck,
-            now - lastActiveMenuBarCheck < Self.activeMenuBarCheckInterval
-        {
-            return false
-        }
-        lastActiveMenuBarCheck = now
-        let currentMenuBarID = NSScreen.screenWithActiveMenuBar?.displayID
-        guard currentMenuBarID != lastActiveMenuBarDisplayID else {
-            return false
-        }
-        lastActiveMenuBarDisplayID = currentMenuBarID
-        return true
+        // A click is what usually moves the menu bar, so it always asks.
+        activeDisplayWatcher?.check()
     }
 
     /// The left-press pipeline: control-item context menu, app menu
@@ -453,9 +410,7 @@ final class HIDEventManager {
                 appState.menuBarManager.updateControlItemStates(for: screen)
             }
 
-            if activeMenuBarDisplayDidChange(rateLimited: true) {
-                appState.menuBarManager.updateControlItemStates(for: screen)
-            }
+            activeDisplayWatcher?.check(throttled: true)
 
             if isMouseInsideMenuBar(appState: appState, screen: screen),
                let mouseLocation = MouseHelpers.locationCoreGraphics
@@ -519,15 +474,7 @@ final class HIDEventManager {
             return nil
         }
 
-        guard isEnabled, let appState, isShowOnClickGuardActive else {
-            return event
-        }
-
-        guard event.type == .leftMouseDown else {
-            return event
-        }
-
-        guard isPointInsideShowOnClickGuardRegion(NSEvent.mouseLocation) else {
+        guard isEnabled, let appState, isShowOnClickGuardActive, event.type == .leftMouseDown, isPointInsideShowOnClickGuardRegion(NSEvent.mouseLocation) else {
             return event
         }
 
@@ -606,8 +553,9 @@ final class HIDEventManager {
 
     /// Wires the manager to the app state and brings its monitors up. Call
     /// once, during app startup.
-    func performSetup(with appState: AppState) {
+    func performSetup(with appState: AppState, activeDisplayWatcher: ActiveMenuBarDisplayWatcher) {
         self.appState = appState
+        self.activeDisplayWatcher = activeDisplayWatcher
         configuration = appState.settings
         menuOpenMonitor = appState.itemManager.menuOpenMonitor
         onScreenItems = appState.itemManager.onScreenItemSnapshot

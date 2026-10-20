@@ -147,4 +147,25 @@ struct ActiveMenuBarDisplayWatcherTests {
         watcher.check()
         #expect(probe.changes == 0)
     }
+
+    @Test("A throttled check reads again only after the throttle interval; a plain one always reads")
+    func throttledChecks() {
+        let probe = Probe()
+        var reads = 0
+        let watcher = ActiveMenuBarDisplayWatcher(readDisplayID: { reads += 1; return probe.displayID })
+        watcher.onChange = { probe.changes += 1 }
+        let start = ContinuousClock.now
+        watcher.check(throttled: true, now: start)
+        probe.displayID = 2
+        watcher.check(throttled: true, now: start + .milliseconds(50))
+        #expect(reads == 1)
+        #expect(probe.changes == 0, "Too soon to read again")
+
+        watcher.check(throttled: true, now: start + .milliseconds(150))
+        #expect(reads == 2)
+        #expect(probe.changes == 1)
+
+        watcher.check(now: start + .milliseconds(160))
+        #expect(reads == 3, "A click always reads")
+    }
 }

@@ -229,7 +229,7 @@ final class MenuBarManager {
 
     private var alwaysShowHiddenItemsController: AlwaysShowHiddenItemsController?
     /// Re-applies "Always show hidden items" when the active menu bar moves to another display.
-    private let activeDisplayWatcher = ActiveMenuBarDisplayWatcher()
+    private var activeDisplayWatcher: ActiveMenuBarDisplayWatcher?
 
     var shouldDeferBarMutation: Bool {
         guard let nativeMenuBarStateChangedAt else { return false }
@@ -282,8 +282,9 @@ final class MenuBarManager {
     /// Captured at launch setup so smart rehide reads menu-open state without reaching through the item manager.
     private var menuOpenMonitor: MenuOpenMonitor?
 
-    func performSetup(with appState: AppState) {
+    func performSetup(with appState: AppState, activeDisplayWatcher: ActiveMenuBarDisplayWatcher) {
         self.appState = appState
+        self.activeDisplayWatcher = activeDisplayWatcher
         configuration = appState.settings
         menuOpenMonitor = appState.itemManager.menuOpenMonitor
         installObservers()
@@ -481,14 +482,14 @@ final class MenuBarManager {
         } refreshControls: { [weak self] in
             self?.updateControlItemStates()
         }
-        activeDisplayWatcher.isNeeded = { [settings = appState.settings.displaySettings] in
+        activeDisplayWatcher?.isNeeded = { [settings = appState.settings.displaySettings] in
             settings.wideDisplayRule.isEnabled || settings.isAlwaysShowEnabledOnAnyDisplay
         }
-        activeDisplayWatcher.onChange = { [weak self] in
+        activeDisplayWatcher?.onChange = { [weak self] in
             self?.synchronizeAlwaysShowHiddenItems()
             self?.updateControlItemStates()
         }
-        activeDisplayWatcher.start()
+        activeDisplayWatcher?.start()
 
         // Debounce cache changes so new items become assignable without churning hotkey registrations each tick.
         let hotkeyTask = Task { @MainActor [weak self, itemManager = appState.itemManager] in
