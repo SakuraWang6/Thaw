@@ -136,7 +136,17 @@ final class AppState {
     // MARK: - Window bookkeeping
 
     /// Track open windows to prevent duplicates
-    private var openWindows = Set<ThawWindowIdentifier>()
+    private var openWindows = Set<ThawWindowIdentifier>() {
+        didSet {
+            guard openWindows.isEmpty != oldValue.isEmpty else { return }
+            WindowMenuTrimmer.shared.refresh()
+        }
+    }
+
+    /// Whether any Thaw window is open, for WindowMenuTrimmer.
+    var hasOpenWindow: Bool {
+        !openWindows.isEmpty
+    }
 
     /// Live windows keyed by scene identifier.
     /// - Note: onWindowChange supplies these because unreliable NSApp.windows KVO would leave openWindows stuck after closing.
