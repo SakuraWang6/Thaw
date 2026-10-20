@@ -278,12 +278,12 @@ extension HIDEventManager {
             ),
             // The live window frame: controlItem.frame is debounced and can be
             // stale after the context menu closes, double-firing show/toggle.
-            let iconFrame = visibleSection.controlItem.window?.frame,
+            let iconWindow = visibleSection.controlItem.window,
             let mouseLocation = MouseHelpers.locationAppKit
         else {
             return false
         }
-        return iconFrame.contains(mouseLocation)
+        return ControlItemHitColumn.appKit(iconWindow.frame, screenMaxY: iconWindow.screen?.frame.maxY ?? iconWindow.frame.maxY).contains(mouseLocation)
     }
 
     /// Whether the cursor is in the app-menu region click-through uses, or nil
