@@ -103,6 +103,24 @@ nonisolated extension SearchIndex {
             property: nil
         ),
         SearchEntry(
+            id: "profiles.shortcuts",
+            title: "Profile shortcuts",
+            descriptionText: String(localized: "Apply a profile with a keyboard shortcut."),
+            pane: .profiles,
+            section: "What switches to this profile",
+            keywords: ["profile", "shortcut", "hotkey", "keyboard", "apply", "switch"],
+            property: nil
+        ),
+        SearchEntry(
+            id: "profiles.switching",
+            title: "Switch profiles by display, Space or Focus",
+            descriptionText: String(localized: "Choose a profile, then the display, Space or Focus that switches to it."),
+            pane: .profiles,
+            section: "What switches to this profile",
+            keywords: ["switch", "automatic", "display", "space", "focus", "focus filter", "profile switching"],
+            property: nil
+        ),
+        SearchEntry(
             id: "pane.automation",
             title: "Rules",
             descriptionText: nil,

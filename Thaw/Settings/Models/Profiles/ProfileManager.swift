@@ -966,15 +966,6 @@ final class ProfileManager {
         persistManifest()
     }
 
-    /// Clears the display association from whichever profile currently holds it.
-    func setAssociatedDisplay(uuid _: String?, forDisplayUUID displayUUID: String) {
-        for index in profiles.indices where profiles[index].associatedDisplayUUID == displayUUID {
-            profiles[index].associatedDisplayUUID = nil
-            profiles[index].associatedDisplayName = nil
-        }
-        persistManifest()
-    }
-
     // MARK: - Profile Hotkeys
 
     /// Creates hotkeys for all profiles and observes their changes.
