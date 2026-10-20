@@ -120,7 +120,7 @@ struct OnboardingBentoView: View {
 
             if Constants.supportsSparkleUpdates {
                 Toggle("Check for updates automatically", isOn: $automaticUpdates)
-                    .toggleStyle(.checkbox)
+                    .toggleStyle(.thawCheckbox)
             }
 
             Spacer()
@@ -134,7 +134,7 @@ struct OnboardingBentoView: View {
                     // a hard 140 clips its longer forms.
                     .frame(minWidth: 140, minHeight: 34)
             }
-            .buttonStyle(.glassProminent)
+            .buttonStyle(.thawProminent)
             .keyboardShortcut(.defaultAction)
         }
     }

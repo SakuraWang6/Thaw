@@ -36,7 +36,7 @@ struct OnboardingWelcomeView: View {
                     // A fixed width clips longer translations; use a minimum.
                     .frame(minWidth: 140, minHeight: 34)
             }
-            .buttonStyle(.glassProminent)
+            .buttonStyle(.thawProminent)
             .keyboardShortcut(.defaultAction)
             .padding(.top, ThawSpacing.section)
 

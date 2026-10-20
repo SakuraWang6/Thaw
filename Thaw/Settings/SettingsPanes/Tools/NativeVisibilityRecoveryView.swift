@@ -76,7 +76,7 @@ struct NativeVisibilityRecoveryView: View {
                         .buttonStyle(.settingsGlass)
                         .disabled(model.isBusy)
                     Button("Restore Visibility…") { confirmsRestore = true }
-                        .buttonStyle(.settingsGlass)
+                        .buttonStyle(.thawProminent)
                         .disabled(!model.canRestore)
                         .keyboardShortcut(.defaultAction)
                 }

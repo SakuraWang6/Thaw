@@ -7,6 +7,7 @@
 
 import Foundation
 import MenuBarModel
+import ThawUI
 
 /// App-specific constants for the main Thaw target.
 /// System-framework paths shared with XPC targets live in SharedConstants.

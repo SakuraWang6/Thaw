@@ -12,6 +12,7 @@ import Observation
 import PlatformRuntimeKit
 import SwiftUI
 import ThawCapture
+import ThawUI
 
 /// Owns sections, panels, per-item hotkeys, and color samples, reacting to system and setting changes after setup.
 /// AppState owns this manager; methods stop when the weak back reference is gone.

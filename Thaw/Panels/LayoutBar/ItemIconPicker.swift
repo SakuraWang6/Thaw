@@ -106,7 +106,7 @@ private struct ItemIconPickerView: View {
                 .buttonStyle(.settingsGlass)
                 Spacer()
                 Button("Done", action: onDone)
-                    .buttonStyle(.glassProminent)
+                    .buttonStyle(.thawProminent)
                     .keyboardShortcut(.defaultAction)
             }
         }

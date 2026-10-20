@@ -114,7 +114,7 @@ struct ThawPermissionsView: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: 36)
                 }
-                .buttonStyle(.glassProminent)
+                .buttonStyle(.thawProminent)
                 .keyboardShortcut(.defaultAction)
                 .disabled(!requiredGranted)
 
@@ -206,7 +206,7 @@ struct ThawPermissionsView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 36)
             }
-            .buttonStyle(.glassProminent)
+            .buttonStyle(.thawProminent)
             .keyboardShortcut(.defaultAction)
 
             if hasRequested, !permission.hasPermission {

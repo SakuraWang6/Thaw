@@ -18,6 +18,7 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 ### Changed
 
 - **What's New lists Stable, Beta and Alpha releases separately.** It opens on the channel you're on, and the Experiments link at the bottom is gone. By @diazdesandi.
+- **Main buttons and checkboxes are see-through gold,** with dark or light text to match, in place of solid gold with a black label. That covers Continue, Done, Apply and the other main buttons, and the checkboxes in onboarding, Layout and the update prompt. By @diazdesandi.
 
 ### Fixed
 

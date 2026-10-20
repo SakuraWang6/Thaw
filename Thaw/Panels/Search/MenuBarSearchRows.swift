@@ -112,15 +112,8 @@ private struct MenuBarItemPlaceholderIcon: View {
     let length: CGFloat
 
     /// Measured against the accent: white on Thaw's light amber is only 2.1:1.
-    /// The shared foreground switch keeps both sides above 4.58:1.
     private var glyphColor: Color {
-        let accent = Color.accentColor.resolve(in: environment)
-        let luminance = ForegroundContrast.relativeLuminance(
-            linearRed: Double(accent.linearRed),
-            linearGreen: Double(accent.linearGreen),
-            linearBlue: Double(accent.linearBlue)
-        )
-        return ForegroundContrast.prefersDarkContent(onLuminance: luminance) ? .black : .white
+        ThawAccentInk.color(on: .accentColor, in: environment)
     }
 
     var body: some View {

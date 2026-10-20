@@ -7,6 +7,7 @@
 
 import CoreGraphics
 import Foundation
+import ThawUI
 
 /// The menu bar appearance as partner apps receive it: the resolved look for the
 /// current color scheme, not Thaw's settings model. Additive changes keep version.

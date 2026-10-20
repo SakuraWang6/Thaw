@@ -308,6 +308,7 @@ struct MenuBarAppearanceEditor: View {
                 dismissWindow()
             }
         }
+        .buttonStyle(.thawProminent)
         .keyboardShortcut(.defaultAction)
 
         Spacer()
@@ -528,7 +529,7 @@ private struct UnlabeledAppearanceFillEditor: View {
     private func accentAwareColorPicker(_ label: LocalizedStringKey) -> some View {
         HStack(spacing: ThawSpacing.base) {
             Toggle("Accent", isOn: binding(fields.usesAccentColor))
-                .toggleStyle(.checkbox)
+                .toggleStyle(.thawCheckbox)
                 .help("Follow the accent color set in System Settings \(Constants.menuArrow) Appearance")
             if !configuration[keyPath: fields.usesAccentColor] {
                 ColorPicker(label, selection: binding(fields.color), supportsOpacity: false)
