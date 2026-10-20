@@ -10,6 +10,7 @@ import Combine
 import Foundation
 import MenuBarModel
 import os
+import Synchronization
 import ThawCapture
 
 /// Watches the pointer and the keyboard modifiers, and drives every behaviour
@@ -47,8 +48,8 @@ final class HIDEventManager {
     /// why the engine holds this rather than AppState.
     var configuration: any MenuBarEngineConfiguration = AppSettings.engineDefaults
 
-    /// Thread-safe counter for mouse-moved event throttling.
-    private nonisolated let mouseMovedThrottleCounter = OSAllocatedUnfairLock(initialState: 0)
+    /// Counts mouse-moved events for the throttle, without a lock on the hottest input path.
+    private nonisolated let mouseMovedThrottleCounter = Atomic<Int>(0)
 
     /// Timestamp of the last forwarded app menu click, used to debounce
     /// duplicate events from a single physical interaction.
@@ -387,14 +388,7 @@ final class HIDEventManager {
         }
 
         // Throttling: Only process every 5th event to reduce CPU usage.
-        let shouldProcess = mouseMovedThrottleCounter.withLock { count -> Bool in
-            count += 1
-            if count >= 5 {
-                count = 0
-                return true
-            }
-            return false
-        }
+        let shouldProcess = mouseMovedThrottleCounter.wrappingAdd(1, ordering: .relaxed).newValue % 5 == 0
         guard shouldProcess else {
             return event
         }
