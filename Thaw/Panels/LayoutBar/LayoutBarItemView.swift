@@ -741,8 +741,8 @@ final class LayoutBarItemView: LayoutBarArrangedView {
         )
     }
 
-    /// App icons fill the available square, but Thaw's own control-item image
-    /// must match the native size used by its real status-item button.
+    /// App icons fill the available square, but Thaw's own control-item image and its
+    /// stand-ins' symbols must match the native size their real status items draw at.
     static func overflowFallbackDrawRect(
         for item: MenuBarItem,
         imageSize: CGSize,
@@ -750,7 +750,7 @@ final class LayoutBarItemView: LayoutBarArrangedView {
     ) -> CGRect {
         guard bounds.width > 0, bounds.height > 0 else { return .zero }
 
-        if item.tag.matchesVisibleControlItem, imageSize.width > 0, imageSize.height > 0 {
+        if item.tag.matchesVisibleControlItem || ThawExtraGlyph.isStandIn(item.tag), imageSize.width > 0, imageSize.height > 0 {
             let scale = min(
                 1,
                 bounds.width / imageSize.width,

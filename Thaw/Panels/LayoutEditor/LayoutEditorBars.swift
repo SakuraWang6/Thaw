@@ -112,9 +112,8 @@ private struct LayoutEditorTile: View {
             ForEach(items, id: \.uniqueIdentifier) { item in
                 Group {
                     if let image = images[item.tag] {
-                        image.swiftUIImage
-                            .resizable()
-                            .scaledToFit()
+                        // Only scaled down: a stand-in's bare symbol stays at its own size.
+                        MenuBarItemGlyph(image: image, fittingHeight: Metrics.glyphHeight)
                     } else {
                         Image(systemName: "menubar.rectangle")
                     }
