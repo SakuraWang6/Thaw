@@ -78,11 +78,31 @@ nonisolated extension MenuBarShapeKind: Codable {
 }
 
 /// The end caps MenuBarShapeKind.full draws the bar with.
-nonisolated struct MenuBarFullShapeInfo: Codable, Hashable {
+nonisolated struct MenuBarFullShapeInfo: Hashable {
     /// How the left-hand end of the shape is finished.
     var leadingEndCap: MenuBarEndCap
     /// How the right-hand end of the shape is finished.
     var trailingEndCap: MenuBarEndCap
+    /// How far a round end curves, from 0 (square corners) to 1 (a half-circle the bar's height).
+    var roundness: Double = 1
+}
+
+nonisolated extension MenuBarFullShapeInfo: Codable {
+    private enum CodingKeys: CodingKey {
+        case leadingEndCap
+        case trailingEndCap
+        case roundness
+    }
+
+    init(from decoder: any Decoder) throws {
+        let stored = try decoder.container(keyedBy: CodingKeys.self)
+        leadingEndCap = try stored.decode(MenuBarEndCap.self, forKey: .leadingEndCap)
+        trailingEndCap = try stored.decode(MenuBarEndCap.self, forKey: .trailingEndCap)
+        // Looks saved before the slider existed had fully round ends.
+        // A damaged record is read inside 0 to 1, and as round when it isn't a number.
+        let decoded = try stored.decodeIfPresent(Double.self, forKey: .roundness) ?? 1
+        roundness = decoded.isFinite ? min(max(decoded, 0), 1) : 1
+    }
 }
 
 nonisolated extension MenuBarFullShapeInfo {
@@ -119,7 +139,8 @@ nonisolated extension MenuBarSplitShapeInfo {
     var outerEndCaps: MenuBarFullShapeInfo {
         MenuBarFullShapeInfo(
             leadingEndCap: leading.leadingEndCap,
-            trailingEndCap: trailing.trailingEndCap
+            trailingEndCap: trailing.trailingEndCap,
+            roundness: leading.roundness
         )
     }
 }
@@ -150,7 +171,8 @@ nonisolated extension MenuBarNotchShapeInfo {
     var outerEndCaps: MenuBarFullShapeInfo {
         MenuBarFullShapeInfo(
             leadingEndCap: leading.leadingEndCap,
-            trailingEndCap: trailing.trailingEndCap
+            trailingEndCap: trailing.trailingEndCap,
+            roundness: leading.roundness
         )
     }
 }
