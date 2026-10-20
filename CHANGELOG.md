@@ -53,6 +53,7 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 - **Thaw keeps your sections after a relaunch in Manual arrangement.** It used to move items you had placed in Layout, often all of them to Visible. Reported by @felixkaiser in [#1367](https://github.com/thaw-app/Thaw/issues/1367). Fixed by @diazdesandi.
 - **A new app's icon goes where the New Items placeholder is.** Moving New Items to Hidden or Always Hidden in Layout had no effect, and new apps' icons always showed up in Visible. Now they land in that section, next to the item the placeholder sits beside. Reported by @nickawilliams in [#1370](https://github.com/thaw-app/Thaw/issues/1370). Fixed by @diazdesandi.
 - **Replaced Control Center items are the right size in Layout's preview.** With Replace Control Center items on, Thaw's own Focus, AirDrop and other items drew bigger in the preview than the rest, though the menu bar was fine. Reported by Keylag on Discord. Fixed by @diazdesandi.
+- **The popped-out Layout editor takes a drop anywhere in a row.** Like the Layout bars in Settings, it no longer needs the drop near the icons. Reported by Keylag on Discord. Fixed by @diazdesandi.
 
 ## [3.0.0-beta.3] - 2026-10-19
 
