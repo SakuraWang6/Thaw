@@ -218,12 +218,51 @@ nonisolated enum MenuBarGlassStyle: Int, CaseIterable, Codable, Hashable {
     case liquid = 2
     /// Clear Liquid Glass with a dark-to-clear vertical fade.
     case dynamic = 3
+    /// Experimental: glass that inverts what's behind it, from the private variant 6.
+    /// Shown as Invert. The case keeps solid, the name it first had.
+    case solid = 4
+    /// Experimental: clear glass with a bright rim, from the private variant 11.
+    case edge = 5
+    /// Experimental: soft, thin clear glass, from the private variant 15.
+    case sheer = 6
+    /// Experimental: a haze in light mode and smoky glass in dark mode, from the private variant 18.
+    case dim = 7
 
     @MainActor
     var nsGlassStyle: NSGlassEffectView.Style {
         switch self {
-        case .regular: .regular
-        case .clear, .liquid, .dynamic: .clear
+        case .regular, .solid, .dim: .regular
+        case .clear, .liquid, .dynamic, .edge, .sheer: .clear
+        }
+    }
+
+    /// The private _variant the finish needs, or nil for the public styles.
+    var privateVariant: Int? {
+        switch self {
+        case .regular, .clear, .liquid, .dynamic: nil
+        case .solid: 6
+        case .edge: 11
+        case .sheer: 15
+        case .dim: 18
+        }
+    }
+
+    /// The finishes built on private settings, marked experimental in Settings.
+    var isExperimental: Bool {
+        privateVariant != nil
+    }
+
+    /// Whether the finish takes the icons' light or dark. Invert doesn't: dark,
+    /// it turns bright and would hide light icons.
+    var followsIconShade: Bool {
+        isExperimental && self != .solid
+    }
+
+    /// How dark the finish makes what's behind it, for reading the icons' contrast.
+    var darkening: Double {
+        switch self {
+        case .dim: 0.5
+        default: 0
         }
     }
 
@@ -241,7 +280,7 @@ nonisolated enum MenuBarGlassStyle: Int, CaseIterable, Codable, Hashable {
 
     var effectOpacity: Double {
         switch self {
-        case .regular, .clear: 1
+        case .regular, .clear, .solid, .edge, .sheer, .dim: 1
         case .liquid, .dynamic: 0.45
         }
     }
@@ -252,6 +291,10 @@ nonisolated enum MenuBarGlassStyle: Int, CaseIterable, Codable, Hashable {
         case .clear: "Clear"
         case .liquid: "Liquid Glass"
         case .dynamic: "Dynamic Glass"
+        case .solid: "Invert (Experimental)"
+        case .edge: "Edge (Experimental)"
+        case .sheer: "Sheer (Experimental)"
+        case .dim: "Dim (Experimental)"
         }
     }
 }

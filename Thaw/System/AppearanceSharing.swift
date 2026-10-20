@@ -172,6 +172,9 @@ nonisolated extension SharedAppearance {
         case .clear: "clear"
         case .liquid: "liquid"
         case .dynamic: "dynamic"
+        // Floe only knows the public styles, so the experimental finishes share their nearest one.
+        case .solid, .dim: "regular"
+        case .edge, .sheer: "clear"
         }
     }
 
