@@ -264,6 +264,9 @@ private struct LayoutSectionOptions: View {
                     Text(style.localized).tag(style)
                 }
             }
+            if settings.sectionDividerStyle == .custom {
+                CustomSectionDividerControls(settings: settings)
+            }
         } footer: {
             if isHidingUnavailable {
                 SettingsWarningPill(

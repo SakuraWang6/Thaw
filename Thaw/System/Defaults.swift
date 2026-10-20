@@ -142,6 +142,7 @@ nonisolated enum Defaults {
             .showAllSectionsOnUserDrag: DefaultValue.showAllSectionsOnUserDrag,
             .newItemsSection: DefaultValue.newItemsSection,
             .sectionDividerStyle: DefaultValue.sectionDividerStyle.rawValue,
+            .customSectionDividerIsTemplate: DefaultValue.customSectionDividerIsTemplate,
             .hideApplicationMenus: DefaultValue.hideApplicationMenus,
             .enableSecondaryContextMenu: DefaultValue.enableSecondaryContextMenu,
             .showOnHoverDelay: DefaultValue.showOnHoverDelay,
@@ -255,6 +256,7 @@ extension Defaults {
         static let newItemsSection = "hidden"
         static let newItemsPlacementData: Data? = nil
         static let sectionDividerStyle: SectionDividerStyle = .noDivider
+        static let customSectionDividerIsTemplate = true
         static let hideApplicationMenus = true
         static let enableSecondaryContextMenu = true
         static let showOnHoverDelay: TimeInterval = 0.2
@@ -423,6 +425,8 @@ extension Defaults {
         case newItemsSection = "NewItemsSection"
         case newItemsPlacementData = "NewItemsPlacementData"
         case sectionDividerStyle = "SectionDividerStyle"
+        case customSectionDividerImage = "CustomSectionDividerImage"
+        case customSectionDividerIsTemplate = "CustomSectionDividerIsTemplate"
         case hideApplicationMenus = "HideApplicationMenus"
         case enableSecondaryContextMenu = "EnableSecondaryContextMenu"
         case showOnHoverDelay = "ShowOnHoverDelay"

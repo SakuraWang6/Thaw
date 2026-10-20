@@ -15,6 +15,7 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 
 - **About links to Floe,** the launcher from the same team. By @diazdesandi.
 - **Experimental: four more glass finishes.** Appearance offers Invert, Edge, Sheer and Dim next to Regular and Clear. Edge, Sheer and Dim follow the shade macOS gives your menu bar icons, so dark icons sit on light glass and light icons on dark glass. A finish macOS doesn't support falls back to the standard glass. By @diazdesandi.
+- **More section divider styles.** Besides None and Chevron, Settings > Layout > Section divider style offers Line, Dot, Slash and Custom, which draws an image you choose, like a custom Thaw icon. By @diazdesandi.
 
 ### Changed
 

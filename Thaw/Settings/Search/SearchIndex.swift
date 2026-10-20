@@ -186,6 +186,9 @@ nonisolated enum SearchIndex {
         .general("screenCornerRadius"),
         // Its switch is on Simple Mode's one page, which has no search.
         .general("simpleModeShowsPreview"),
+        // Shown under Section divider style only while Custom is chosen; search finds that.
+        .advanced("customSectionDividerImage"),
+        .advanced("customSectionDividerIsTemplate"),
         // The Everything option of the Hiding method picker, indexed under
         // advanced.enableNativeAppHiding.
         .advanced("enableExperimentalSystemItemHiding"),

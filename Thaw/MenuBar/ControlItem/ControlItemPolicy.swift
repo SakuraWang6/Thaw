@@ -31,8 +31,10 @@ extension ControlItem {
     nonisolated enum SectionDividerPresentation: Equatable {
         /// Collapse the status item to nothing.
         case hidden
-        /// Draw the small interactive chevron that separates two sections.
-        case chevron
+        /// Draw the small interactive mark that separates two sections.
+        case shown(ControlItemImage.ImageBuiltinName)
+        /// Draw the image chosen for a Custom divider.
+        case custom(SectionDividerCustomMark)
     }
 
     /// Decides how a section divider should present itself.
@@ -42,15 +44,18 @@ extension ControlItem {
     /// revealed, and only when the user has asked for a divider at all.
     static nonisolated func sectionDividerPresentation(
         state: HidingState,
-        style: SectionDividerStyle
+        style: SectionDividerStyle,
+        customMark: SectionDividerCustomMark? = nil
     ) -> SectionDividerPresentation {
         switch state {
         case .hideSection:
             .hidden
         case .showSection:
-            switch style {
-            case .noDivider: .hidden
-            case .chevron: .chevron
+            if style == .custom {
+                // Until an image is chosen, the chevron keeps the divider findable.
+                customMark.map(SectionDividerPresentation.custom) ?? .shown(.chevronSmall)
+            } else {
+                style.image.map(SectionDividerPresentation.shown) ?? .hidden
             }
         }
     }

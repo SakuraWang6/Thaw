@@ -861,7 +861,9 @@ extension ControlItem {
             let advancedSettings = appState.settings.advanced
             sectionDividerStyleObservationTask?.cancel()
             sectionDividerStyleObservationTask = Task { @MainActor [weak self] in
-                let changes = Observations { advancedSettings.sectionDividerStyle }
+                let changes = Observations {
+                    (advancedSettings.sectionDividerStyle, advancedSettings.customSectionDividerImage, advancedSettings.customSectionDividerIsTemplate)
+                }
                 for await _ in changes {
                     guard let self else { return }
                     updateStatusItem()
@@ -934,13 +936,17 @@ extension ControlItem {
 
         ControlItemDefaults.restoreVisibilityIfNeeded(autosaveName: identifier.rawValue)
         addToMenuBar()
-        expandStatusItem()
+        button.isHighlighted = false
+        show(iconImage(appState: appState), in: button)
+    }
 
+    /// Sizes the item to its content and draws image in an enabled button.
+    private func show(_ image: NSImage?, in button: NSStatusBarButton) {
+        expandStatusItem()
         button.isEnabled = true
         button.alphaValue = 1
         button.appearsDisabled = false
-        button.isHighlighted = false
-        button.image = iconImage(appState: appState)
+        button.image = image
     }
 
     /// The icon image for the current hiding state.
@@ -972,9 +978,11 @@ extension ControlItem {
         case .visible: false
         }
 
+        let image: NSImage?
         switch Self.sectionDividerPresentation(
             state: isRevealed ? .showSection : .hideSection,
-            style: configuration.sectionDividerStyle
+            style: configuration.sectionDividerStyle,
+            customMark: configuration.customSectionDividerMark
         ) {
         case .hidden:
             if button.image != nil {
@@ -994,13 +1002,15 @@ extension ControlItem {
             if keepsSliver {
                 button.title = "|"
             }
-        case .chevron:
-            expandStatusItem()
-            button.isEnabled = true
-            button.alphaValue = 1
-            button.appearsDisabled = false
-            button.image = ControlItemImage.builtin(.chevronSmall).nsImage(for: appState)
+            return
+        case let .shown(builtin):
+            image = ControlItemImage.builtin(builtin).nsImage(for: appState)
+        case let .custom(mark):
+            // Saved data that no longer decodes draws the chevron, so the divider stays findable.
+            image = ControlItemImage.dividerImage(for: mark)
+                ?? ControlItemImage.builtin(.chevronSmall).nsImage(for: appState)
         }
+        show(image, in: button)
     }
 
     /// Expands the status item so it sizes itself to its own content.

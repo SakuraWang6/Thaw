@@ -57,6 +57,8 @@ extension AppSettings {
         advanced.showAllSectionsOnUserDrag = Defaults.DefaultValue.showAllSectionsOnUserDrag
         appState?.itemManager.updateNewItemsPlacement(section: .hidden, arrangedViews: [])
         advanced.sectionDividerStyle = Defaults.DefaultValue.sectionDividerStyle
+        advanced.customSectionDividerImage = nil
+        advanced.customSectionDividerIsTemplate = Defaults.DefaultValue.customSectionDividerIsTemplate
         advanced.menuBarArrangementMode = Defaults.DefaultValue.menuBarArrangementMode
         advanced.hideApplicationMenus = Defaults.DefaultValue.hideApplicationMenus
         advanced.enableSecondaryContextMenu = Defaults.DefaultValue.enableSecondaryContextMenu
