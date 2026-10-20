@@ -157,6 +157,9 @@ public struct MenuBarItem: CustomStringConvertible, Sendable, Codable {
             (sourcePID ?? ownerPID) == (other.sourcePID ?? other.ownerPID)
     }
 
+    /// The lowest a live bar item's frame centre sits in the hosting-window space; below it, an item is parked off the bar.
+    public static let maxBarBandMidY: CGFloat = 80
+
     /// Whether AX reports this item parked outside the live bar. During
     /// assertion reflows macOS 27 parks items around y 1400 with a hidden-side
     /// X, which would falsely trigger divergence detection and reorders.
@@ -173,15 +176,15 @@ public struct MenuBarItem: CustomStringConvertible, Sendable, Codable {
         }
 
         // Live bar items sit in the top 60 pt or so of the hosting-window space.
-        if bounds.midY > 80 {
+        if bounds.midY > Self.maxBarBandMidY {
             return true
         }
 
         guard let barMidY = peers.first(where: {
-            $0.tag.matchesVisibleControlItem && $0.bounds.midY <= 80
+            $0.tag.matchesVisibleControlItem && $0.bounds.midY <= Self.maxBarBandMidY
         })?.bounds.midY
             ?? peers.first(where: {
-                $0.isControlItem && $0.bounds.width > 8 && $0.bounds.midY <= 80
+                $0.isControlItem && $0.bounds.width > 8 && $0.bounds.midY <= Self.maxBarBandMidY
             })?.bounds.midY
         else { return false }
         // The live band is about 30 pt; parked items are 1000+ pt away on Y.
