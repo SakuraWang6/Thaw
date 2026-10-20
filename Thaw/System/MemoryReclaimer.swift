@@ -5,6 +5,7 @@
 //  Copyright (Thaw) © 2026 Toni Förster
 //  Licensed under the GNU GPLv3
 
+import AsyncAlgorithms
 import Darwin
 import Foundation
 import MenuBarModel
@@ -19,6 +20,12 @@ enum MemoryReclaimer {
 
     private static var pendingRelief: Task<Void, Never>?
     private static var pressureSource: DispatchSourceMemoryPressure?
+    private static var footprintLog: Task<Void, Never>?
+
+    /// How often the footprint goes into the log, so a slow climb shows when it began.
+    static let footprintLogInterval: Duration = .seconds(600)
+    /// Far above a settled Thaw (about 40 MB); passing it once gets a warning.
+    nonisolated static let footprintWarningMegabytes: UInt64 = 150
 
     /// Starts listening for system memory pressure. Called once at launch.
     static func start() {
@@ -33,6 +40,29 @@ enum MemoryReclaimer {
         }
         source.resume()
         pressureSource = source
+        startFootprintLog()
+    }
+
+    private static func startFootprintLog() {
+        footprintLog = Task {
+            var warned = false
+            // The continuous clock keeps counting while the Mac sleeps.
+            for await _ in AsyncTimerSequence(interval: footprintLogInterval, clock: .continuous) {
+                guard let footprint = physicalFootprint() else { continue }
+                let megabytes = footprint / 1_048_576
+                if shouldWarn(megabytes: megabytes, alreadyWarned: warned) {
+                    warned = true
+                    diagLog.warning("footprint \(megabytes) MB, above \(footprintWarningMegabytes) MB")
+                } else {
+                    diagLog.info("footprint \(megabytes) MB")
+                }
+            }
+        }
+    }
+
+    /// Warns the first time the footprint passes the line, not on every sample after.
+    static nonisolated func shouldWarn(megabytes: UInt64, alreadyWarned: Bool) -> Bool {
+        !alreadyWarned && megabytes > footprintWarningMegabytes
     }
 
     /// Runs a relief sweep once closes stop arriving for a moment.
