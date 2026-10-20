@@ -106,9 +106,7 @@ struct ThawPlacementWarning: View {
             tint: .orange,
             actionTitle: "Open System Settings"
         ) {
-            if let url = Constants.menuBarSystemSettingsURL {
-                NSWorkspace.shared.open(url)
-            }
+            Constants.openMenuBarSystemSettings()
         }
     }
 }

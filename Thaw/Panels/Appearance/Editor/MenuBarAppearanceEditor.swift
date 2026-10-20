@@ -98,6 +98,8 @@ struct MenuBarAppearanceEditor: View {
                 )
             }
 
+            MenuBarBackgroundWarning()
+
             if let failure = appearanceManager.lastPersistenceFailure {
                 SettingsWarningPill(
                     title: "Appearance change wasn’t saved",
@@ -181,20 +183,11 @@ struct MenuBarAppearanceEditor: View {
             }
         } footer: {
             VStack(alignment: .leading, spacing: ThawSpacing.tight) {
-                if isAnyEffectActive {
-                    Text("If a change doesn’t show, turn off “Show menu bar background” in System Settings \(Constants.menuArrow) Menu Bar.")
-                }
                 if case .settings = location, appState.settings.advanced.enableSecondaryContextMenu {
                     Text("Right-click an empty part of the menu bar to edit the look without opening Settings.")
                 }
             }
         }
-    }
-
-    private var isAnyEffectActive: Bool {
-        configuration.current.tintKind != .noTint
-            || configuration.shapeKind != .noShape
-            || configuration.current.backgroundKind != .none
     }
 
     private var perSpaceControls: some View {
