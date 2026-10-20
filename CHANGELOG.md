@@ -50,6 +50,7 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 - **No more typing hitches with Thaw's icon turned off.** Thaw kept re-adding its hidden icon every minute, and its memory grew each time. Reported by @TianfeiXu in [#1369](https://github.com/thaw-app/Thaw/issues/1369). Fixed by @diazdesandi.
 - **No discolored band when Notification Center opens.** A Clock click or the Notification Center shortcut no longer paints a cover over the bar, which showed as a strip of the wrong color. Reported by @jmstacey in [#1337](https://github.com/thaw-app/Thaw/issues/1337). Fixed by @diazdesandi.
 - **Thaw keeps your sections after a relaunch in Manual arrangement.** It used to move items you had placed in Layout, often all of them to Visible. Reported by @felixkaiser in [#1367](https://github.com/thaw-app/Thaw/issues/1367). Fixed by @diazdesandi.
+- **A new app's icon goes where the New Items placeholder is.** Moving New Items to Hidden or Always Hidden in Layout had no effect, and new apps' icons always showed up in Visible. Now they land in that section, next to the item the placeholder sits beside. Reported by @nickawilliams in [#1370](https://github.com/thaw-app/Thaw/issues/1370). Fixed by @diazdesandi.
 
 ## [3.0.0-beta.3] - 2026-10-19
 
