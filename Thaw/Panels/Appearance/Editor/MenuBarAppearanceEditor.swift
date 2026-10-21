@@ -245,11 +245,11 @@ struct MenuBarAppearanceEditor: View {
         ThawSection {
             LabeledContent("Editing") {
                 HStack(spacing: 8) {
-                    ThawTabStrip(selection: $editingAppearance, items: [
-                        ThawTabStrip.Item(.light, title: "Light", systemImage: "sun.max"),
-                        ThawTabStrip.Item(.dark, title: "Dark", systemImage: "moon"),
+                    ThawPillPicker(selection: $editingAppearance, options: [
+                        ThawPillPicker.Option(.light, title: "Light", systemImage: "sun.max"),
+                        ThawPillPicker.Option(.dark, title: "Dark", systemImage: "moon"),
                     ])
-                    .fixedSize()
+                    .accessibilityLabel("Editing")
 
                     if systemAppearance != editingAppearance {
                         HoldToPreviewButton(previewedAppearance: editingAppearance)
@@ -578,24 +578,17 @@ private struct UnlabeledAppearanceFillEditor: View {
     }
 
     private func borderStylePicker(_ keyPath: WritableKeyPath<MenuBarAppearancePartialConfiguration, MenuBarBorderStyle>) -> some View {
-        Picker("Border style", selection: binding(keyPath)) {
-            ForEach(MenuBarBorderStyle.allCases, id: \.self) { style in
-                Text(style.localized).tag(style)
-            }
-        }
-        .labelsHidden()
-        .fixedSize()
+        ThawPillPicker("Border style", selection: binding(keyPath), values: MenuBarBorderStyle.allCases, title: \.localized)
+            .labelsHidden()
     }
 
     private var borderWidthPicker: some View {
-        Picker("Border width", selection: binding(fields.borderWidth)) {
-            Text("1 pt").tag(1.0)
-            Text("2 pt").tag(2.0)
-            Text("3 pt").tag(3.0)
-        }
-        .pickerStyle(.segmented)
-        .labelsHidden()
-        .fixedSize()
+        ThawPillPicker(selection: binding(fields.borderWidth), options: [
+            ThawPillPicker.Option(1.0, title: "1 pt"),
+            ThawPillPicker.Option(2.0, title: "2 pt"),
+            ThawPillPicker.Option(3.0, title: "3 pt"),
+        ])
+        .accessibilityLabel("Border width")
     }
 
     // MARK: Surface plumbing

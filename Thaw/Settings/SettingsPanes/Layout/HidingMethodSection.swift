@@ -44,22 +44,18 @@ struct HidingMethodSection: View {
         ThawSection {
             Text("Hiding")
         } content: {
-            ThawPicker("Hiding method", selection: methodBinding) {
-                ForEach(offeredMethods) { method in
-                    Text(method.localized).tag(method)
-                }
-            }
-            .annotation {
-                VStack(alignment: .leading, spacing: ThawSpacing.tight) {
-                    Text(method.explanation)
-                    if method == .native {
-                        nativeStatus
-                    } else if let notice = appState.menuBarManager.nativeAppHidingExperiment.failedStartNotice {
-                        Text(notice)
-                            .foregroundStyle(.orange)
+            ThawPillPicker("Hiding method", selection: methodBinding, values: offeredMethods, title: \.localized)
+                .annotation {
+                    VStack(alignment: .leading, spacing: ThawSpacing.tight) {
+                        Text(method.explanation)
+                        if method == .native {
+                            nativeStatus
+                        } else if let notice = appState.menuBarManager.nativeAppHidingExperiment.failedStartNotice {
+                            Text(notice)
+                                .foregroundStyle(.orange)
+                        }
                     }
                 }
-            }
 
             if method.hidesAppleItems {
                 // Blue denotes a limitation, not a failure.

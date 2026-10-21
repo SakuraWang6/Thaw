@@ -198,19 +198,15 @@ struct AboutSettingsPane: View {
     private var updates: some View {
         VStack(spacing: 0) {
             updateRow("Update channel") {
-                ThawPillPicker(
-                    selection: $updatesManager.updateChannel,
-                    options: UpdateChannel.selectable.map { ThawPillPicker.Option($0, title: $0.localized) }
-                )
-                .accessibilityLabel("Update channel")
+                ThawPillPicker("Update channel", selection: $updatesManager.updateChannel, values: UpdateChannel.selectable, title: \.localized)
             }
             Divider()
             updateRow("Automatic updates") {
                 ThawPillPicker(
+                    "Automatic updates",
                     selection: $updatesManager.automaticUpdates,
                     options: AutomaticUpdates.allCases.map { ThawPillPicker.Option($0, title: $0.shortLocalized, help: $0.localized) }
                 )
-                .accessibilityLabel("Automatic updates")
             }
             Divider()
             updateRow(updateFootnote, isSecondary: true) {

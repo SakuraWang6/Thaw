@@ -247,11 +247,12 @@ private struct LayoutSectionOptions: View {
             Text("Sections")
         } content: {
             // Arrangement leads because it gates the section controls.
-            ThawPicker("Item arrangement", selection: $settings.menuBarArrangementMode) {
-                ForEach(MenuBarArrangementMode.allCases) { mode in
-                    Text(mode.localized).tag(mode)
-                }
-            }
+            ThawPillPicker(
+                "Item arrangement",
+                selection: $settings.menuBarArrangementMode,
+                values: MenuBarArrangementMode.allCases,
+                title: \.localized
+            )
             .annotation(settings.menuBarArrangementMode.explanation)
 
             Toggle(

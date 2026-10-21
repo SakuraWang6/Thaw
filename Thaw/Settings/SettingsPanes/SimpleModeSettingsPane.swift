@@ -112,11 +112,12 @@ struct SimpleModeSettingsPane: View {
     /// The same choice as on Layout, so Simple Mode doesn't decide it for you.
     private var arrangementPicker: some View {
         @Bindable var advanced = appState.settings.advanced
-        return ThawPicker("Item arrangement", selection: $advanced.menuBarArrangementMode) {
-            ForEach(MenuBarArrangementMode.allCases) { mode in
-                Text(mode.localized).tag(mode)
-            }
-        }
+        return ThawPillPicker(
+            "Item arrangement",
+            selection: $advanced.menuBarArrangementMode,
+            values: MenuBarArrangementMode.allCases,
+            title: \.localized
+        )
         .annotation(advanced.menuBarArrangementMode.explanation)
     }
 
