@@ -116,8 +116,33 @@ nonisolated extension MenuBarFullShapeInfo {
     static let defaultValue = MenuBarFullShapeInfo(leadingEndCap: .round, trailingEndCap: .round)
 }
 
+/// A shape drawn as two full shapes, one around the leading items and one
+/// around the trailing items.
+nonisolated protocol MenuBarTwoPartShapeInfo {
+    var leading: MenuBarFullShapeInfo { get }
+    var trailing: MenuBarFullShapeInfo { get }
+}
+
+nonisolated extension MenuBarTwoPartShapeInfo {
+    /// Whether either part rounds off an end.
+    var hasRoundedShape: Bool {
+        [leading, trailing].contains(where: \.hasRoundedShape)
+    }
+
+    /// The caps on the outermost ends of the two parts, what one full-width
+    /// shape wears in their place: when a split collapses into one, or on a
+    /// display without a notch.
+    var outerEndCaps: MenuBarFullShapeInfo {
+        MenuBarFullShapeInfo(
+            leadingEndCap: leading.leadingEndCap,
+            trailingEndCap: trailing.trailingEndCap,
+            roundness: leading.roundness
+        )
+    }
+}
+
 /// The two sub-shapes MenuBarShapeKind.split draws the bar with.
-nonisolated struct MenuBarSplitShapeInfo: Codable, Hashable {
+nonisolated struct MenuBarSplitShapeInfo: Codable, Hashable, MenuBarTwoPartShapeInfo {
     /// The sub-shape drawn around the leading items.
     var leading: MenuBarFullShapeInfo
     /// The sub-shape drawn around the trailing items.
@@ -125,31 +150,14 @@ nonisolated struct MenuBarSplitShapeInfo: Codable, Hashable {
 }
 
 nonisolated extension MenuBarSplitShapeInfo {
-    /// Whether either sub-shape rounds off an end.
-    var hasRoundedShape: Bool {
-        [leading, trailing].contains(where: \.hasRoundedShape)
-    }
-}
-
-nonisolated extension MenuBarSplitShapeInfo {
     static let defaultValue = MenuBarSplitShapeInfo(leading: .defaultValue, trailing: .defaultValue)
-
-    /// The caps on the outermost ends of the two sub-shapes, what a single
-    /// full-width shape wears when the split collapses into one.
-    var outerEndCaps: MenuBarFullShapeInfo {
-        MenuBarFullShapeInfo(
-            leadingEndCap: leading.leadingEndCap,
-            trailingEndCap: trailing.trailingEndCap,
-            roundness: leading.roundness
-        )
-    }
 }
 
 /// Information for the MenuBarShapeKind.notch menu bar shape kind.
 ///
 /// Without a notch it falls back to full width, using the leading cap on the
 /// left and the trailing cap on the right.
-nonisolated struct MenuBarNotchShapeInfo: Codable, Hashable {
+nonisolated struct MenuBarNotchShapeInfo: Codable, Hashable, MenuBarTwoPartShapeInfo {
     /// The leading shape info.
     var leading: MenuBarFullShapeInfo
     /// The trailing shape info.
@@ -157,24 +165,7 @@ nonisolated struct MenuBarNotchShapeInfo: Codable, Hashable {
 }
 
 nonisolated extension MenuBarNotchShapeInfo {
-    /// Whether either side rounds off an end.
-    var hasRoundedShape: Bool {
-        [leading, trailing].contains(where: \.hasRoundedShape)
-    }
-}
-
-nonisolated extension MenuBarNotchShapeInfo {
     static let defaultValue = MenuBarNotchShapeInfo(leading: .defaultValue, trailing: .defaultValue)
-
-    /// The caps on the outermost ends of the two sides, what the full-width
-    /// fallback shape wears on displays without a notch.
-    var outerEndCaps: MenuBarFullShapeInfo {
-        MenuBarFullShapeInfo(
-            leadingEndCap: leading.leadingEndCap,
-            trailingEndCap: trailing.trailingEndCap,
-            roundness: leading.roundness
-        )
-    }
 }
 
 /// A type that specifies how the background surrounding the shape is rendered.
