@@ -57,6 +57,7 @@ struct SettingsView: View {
         .onWindowChange { window in
             settingsWindow = window
             if let window {
+                appState.settingsProcessHost.appWindowOpened(window)
                 SettingsWindowDiagnostics.logWhenLaidOut(
                     window, zoomPercent: zoomPercent, isSimpleMode: generalSettings.simpleMode
                 )
