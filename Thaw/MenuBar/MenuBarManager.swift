@@ -34,7 +34,7 @@ final class MenuBarManager {
     /// Persisted _HIHideMenuBar value, unlike isMenuBarHiddenBySystem which also reflects transient app presentation options.
     private(set) var isMenuBarHiddenBySystemUserDefaults = false
 
-    /// Pause hover after an explicit toggle so it cannot undo the user; resume when the pointer leaves.
+    /// Pause hover after an explicit toggle so it cannot undo the user; HoverPauseLatch resumes it once the pointer leaves the hover band.
     var showOnHoverAllowed = true {
         didSet {
             // Hiding a section and the hover rearm both allow hover again, which undid Zen Mode's lock.

@@ -161,6 +161,7 @@ extension HIDEventManager {
         else {
             return
         }
+        releaseHoverPauseIfPointerLeft(appState: appState, screen: screen)
 
         guard Self.shouldProcessHover(
             showOnHover: configuration.showOnHover,
