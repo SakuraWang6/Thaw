@@ -66,8 +66,9 @@ final class AdvancedSettings {
             guard oldValue != menuBarArrangementMode else { return }
             Defaults.set(menuBarArrangementMode.rawValue, forKey: .menuBarArrangementMode)
             if menuBarArrangementMode == .manual {
-                // Manual membership follows where items already sit in the bar.
-                appState?.itemManager.scheduleObservedMembershipAdoption(reason: "switched to Manual")
+                // Switching to Manual keeps the sections set in Layout, since the stored
+                // weights of concealed items can be out of date.
+                appState?.itemManager.scheduleObservedMembershipAdoption(reason: "switched to Manual", keepingAuthored: true)
             }
         }
     }

@@ -43,9 +43,18 @@ nonisolated enum ObservedMembership {
         case ordered(Dividers)
 
         /// Nothing moves on a reading that can't be trusted.
-        func moves(for candidates: [Candidate], keepingAuthored: Bool = false) -> [(section: MenuBarSectionName, items: [MenuBarItem])] {
+        func moves(
+            for candidates: [Candidate],
+            keepingAuthored: Bool = false,
+            since baseline: DragBaseline? = nil
+        ) -> [(section: MenuBarSectionName, items: [MenuBarItem])] {
             guard case let .ordered(dividers) = self else { return [] }
-            return ObservedMembership.moves(for: candidates, dividers: dividers, keepingAuthored: keepingAuthored)
+            return ObservedMembership.moves(
+                for: candidates,
+                dividers: dividers,
+                keepingAuthored: keepingAuthored,
+                since: baseline
+            )
         }
     }
 
@@ -99,17 +108,52 @@ nonisolated enum ObservedMembership {
         let authored: MenuBarSectionName?
     }
 
+    /// Each item's stored weight, and the section it read as, when a ⌘-drag started.
+    ///
+    /// Items that are concealed keep weights that can be long out of date, and
+    /// MenuBarAgent saves every row on the bar again when a drag ends, which can
+    /// move the dividers' weights past those stale ones. An item the drag moved
+    /// has a new weight that reads as another section than before: the dragged
+    /// item, or an item on the bar that a dragged divider passed.
+    struct DragBaseline {
+        private let readings: [String: (weight: Int, section: MenuBarSectionName)]
+
+        init(candidates: [Candidate], dividers: Dividers) {
+            var readings = [String: (weight: Int, section: MenuBarSectionName)]()
+            for candidate in candidates {
+                readings[Self.key(for: candidate.item)] = (candidate.weight, dividers.section(for: candidate.weight))
+            }
+            self.readings = readings
+        }
+
+        /// Whether the drag gave candidate a new weight that reads as another
+        /// section. An item the baseline never saw did not take part in the drag.
+        func crossedDivider(_ candidate: Candidate, dividers: Dividers) -> Bool {
+            guard let before = readings[Self.key(for: candidate.item)] else { return false }
+            return before.weight != candidate.weight && before.section != dividers.section(for: candidate.weight)
+        }
+
+        private static func key(for item: MenuBarItem) -> String {
+            MenuBarItemTag.canonicalPersistentIdentifier(item.uniqueIdentifier)
+        }
+    }
+
     /// The items to move, grouped by the section they sit in on the bar, in reading order.
     /// keepingAuthored leaves every item that already has a section alone, and only
     /// places the ones that have none: in Manual the stored weights go stale, and
-    /// Layout's sections win over them.
+    /// Layout's sections win over them. A baseline limits the moves to the items
+    /// a ⌘-drag carried across a divider.
     static func moves(
         for candidates: [Candidate],
         dividers: Dividers,
-        keepingAuthored: Bool = false
+        keepingAuthored: Bool = false,
+        since baseline: DragBaseline? = nil
     ) -> [(section: MenuBarSectionName, items: [MenuBarItem])] {
         let moving = candidates.compactMap { candidate -> (section: MenuBarSectionName, item: MenuBarItem)? in
             if keepingAuthored, candidate.authored != nil {
+                return nil
+            }
+            if let baseline, !baseline.crossedDivider(candidate, dividers: dividers) {
                 return nil
             }
             let observed = dividers.section(for: candidate.weight)

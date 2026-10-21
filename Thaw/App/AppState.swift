@@ -465,7 +465,9 @@ final class AppState {
                 let dragEnded = previous == true && !isDragging
                 previous = isDragging
                 isDraggingMenuBarItem = isDragging
-                if dragEnded {
+                if isDragging {
+                    itemManager.dragMembership.dragStarted()
+                } else if dragEnded {
                     itemManager.noteUserMenuBarDragEnded()
                 }
             }
