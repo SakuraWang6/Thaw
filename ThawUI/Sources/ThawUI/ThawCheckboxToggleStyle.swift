@@ -28,7 +28,7 @@ public struct ThawCheckboxToggleStyle: ToggleStyle {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .opacity(isEnabled ? 1 : 0.5)
+        .opacity(isEnabled ? 1 : ThawInk.disabledOpacity)
         .accessibilityValue(Text(configuration.isOn ? LocalizedStringKey("On") : LocalizedStringKey("Off")))
         .accessibilityAddTraits(.isToggle)
     }
