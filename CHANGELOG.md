@@ -57,6 +57,7 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 - **The popped-out Layout editor takes a drop anywhere in a row.** Like the Layout bars in Settings, it no longer needs the drop near the icons. Reported by Keylag on Discord. Fixed by @diazdesandi.
 - **The Thaw Bar stays closed when Zen Mode ends.** With Always show hidden items on and the Thaw Bar off, leaving Zen Mode, such as when screen sharing stops, could open the Thaw Bar. The hidden items now come back in the menu bar. Reported by Keylag on Discord. Fixed by @diazdesandi.
 - **Automatic update checks run without opening Settings.** Thaw only started checking for updates once Settings had been opened, so it could go days without looking. With Check for updates automatically on, it now checks once a day from launch, and with notifications off, the update window shows itself. Reported by Keylag on Discord. Fixed by @diazdesandi.
+- **The menu bar shape hides during Mission Control again.** On macOS 27 an empty outline of your Appearance shape stayed across the top of the screen while Mission Control was open. Reported by @fateoffuriou in [#1359](https://github.com/orgs/thaw-app/discussions/1359). Fixed by @diazdesandi.
 
 ## [3.0.0-beta.3] - 2026-10-19
 
