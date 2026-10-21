@@ -57385,7 +57385,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Eignes Symbol nutzt dynamische Darstellung"
+            "value" : "Eigenes Symbol nutzt dynamische Darstellung"
           }
         },
         "es" : {
@@ -137106,8 +137106,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : ""
+            "state" : "new",
+            "value" : "Remove Override for This Space"
           }
         },
         "hu" : {
@@ -137934,8 +137934,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : ""
+            "state" : "new",
+            "value" : "Remove this spacer"
           }
         },
         "hu" : {
@@ -140060,8 +140060,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Revoir l'introduction"
+            "state" : "new",
+            "value" : "Replay onboarding"
           }
         },
         "hu" : {
