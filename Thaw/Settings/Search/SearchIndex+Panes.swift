@@ -131,7 +131,7 @@ nonisolated extension SearchIndex {
         SearchEntry(
             id: "pane.triggers",
             title: "Triggers",
-            descriptionText: "Show menu bar items while an app is running.",
+            descriptionText: String(localized: "Show menu bar items while an app is running."),
             pane: .automation,
             keywords: ["trigger", "app running", "launch", "quit", "conditional", "show", "reveal"],
             property: nil
