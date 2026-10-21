@@ -45,7 +45,7 @@ struct HookRunnerTests {
 
     @Test
     func `a script that outlives its timeout is reported as timed out, not as failed to run`() async throws {
-        let url = try script("sleep 30")
+        let url = try script("sleep 60")
         defer { try? FileManager.default.removeItem(at: url) }
         let started = ContinuousClock.now
 
@@ -55,7 +55,9 @@ struct HookRunnerTests {
         } catch let HookRunner.HookError.timedOut(after: seconds) {
             #expect(seconds == 1)
         }
-        #expect(ContinuousClock.now - started < .seconds(10), "The child must be stopped, not waited for")
+        // Stopping takes about two seconds: the timeout, then the teardown's one-second grace.
+        // Half the script's run leaves room for a busy CI runner and still tells stopping from waiting.
+        #expect(ContinuousClock.now - started < .seconds(30), "The child must be stopped, not waited for")
     }
 
     @Test
