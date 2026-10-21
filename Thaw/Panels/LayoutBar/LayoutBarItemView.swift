@@ -101,9 +101,11 @@ final class LayoutBarItemView: LayoutBarArrangedView {
     private var cachedImage: MenuBarItemGlyphCapture? {
         didSet {
             let previousSize = frame.size
-            cachedDrawImage = cachedImage.map {
-                NSImage(cgImage: $0.cgImage, size: $0.pointSize)
+            // An animating icon brings a new capture each frame; drop the old one's tinted copies.
+            if let previous = cachedDrawImage {
+                tintedImageCache[ObjectIdentifier(previous)] = nil
             }
+            cachedDrawImage = cachedImage.map(LayoutBarCaptureInk.drawImage(for:))
             systemItemHorizontalPadding = Self.systemItemHorizontalPadding(
                 for: item,
                 image: cachedImage,
@@ -664,7 +666,10 @@ final class LayoutBarItemView: LayoutBarArrangedView {
         if shouldPreferPlaceholderImage {
             drawOverflowFallback()
         } else if let capturedImage = cachedDrawImage {
-            capturedImage.draw(
+            let inked = capturedImage.isTemplate
+                ? tintedImage(for: capturedImage, tint: menuBarForegroundColor)
+                : capturedImage
+            inked.draw(
                 in: capturedImageDrawRect(for: capturedImage),
                 from: .zero,
                 operation: .sourceOver,

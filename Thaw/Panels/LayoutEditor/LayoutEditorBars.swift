@@ -116,7 +116,7 @@ private struct LayoutEditorTile: View {
                 Group {
                     if let image = images[item.tag] {
                         // Only scaled down: a stand-in's bare symbol stays at its own size.
-                        MenuBarItemGlyph(image: image, fittingHeight: Metrics.glyphHeight)
+                        MenuBarItemGlyph(image: image, fittingHeight: Metrics.glyphHeight, reinksCaptures: true)
                     } else {
                         Image(systemName: "menubar.rectangle")
                     }
