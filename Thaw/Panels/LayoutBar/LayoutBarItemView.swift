@@ -535,17 +535,17 @@ final class LayoutBarItemView: LayoutBarArrangedView {
         showItemMenu(fallbackEvent: event)
     }
 
-    /// Container-supplied section concealing this Visible item along with an app sibling; drives the tooltip.
-    var hiddenWithAppSection: MenuBarSection.Name? {
+    /// Container-supplied place macOS puts this item because of its app's other items; drives the tooltip.
+    var appWideOverride: AppWideOverride? {
         didSet {
-            guard oldValue != hiddenWithAppSection else { return }
+            guard oldValue != appWideOverride else { return }
             tooltipController.text = tooltipText
+            setAccessibilityHelp(appWideOverride?.tooltip(itemName: item.displayName))
         }
     }
 
     private var tooltipText: String {
-        guard hiddenWithAppSection != nil else { return item.displayName }
-        return String(localized: "\(item.displayName) is not in the menu bar. macOS hides this app as a whole, and another of its items is hidden. Right-click to move them together.")
+        appWideOverride?.tooltip(itemName: item.displayName) ?? item.displayName
     }
 
     private func showItemMenu(fallbackEvent: NSEvent? = nil) {

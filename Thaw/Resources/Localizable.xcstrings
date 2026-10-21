@@ -948,6 +948,9 @@
     "%@ is disconnected. You can still edit its saved configuration; it applies when this display reconnects." : {
 
     },
+    "%@ stays in the menu bar. macOS shows this app as a whole, and another of its items is in Visible. Right-click to move them together." : {
+
+    },
     "%@ is not in the menu bar. macOS hides this app as a whole, and another of its items is hidden. Right-click to move them together." : {
 
     },
@@ -33497,6 +33500,9 @@
 
     },
     "Shown when %@ has no picture of the item, which is always the case for a Thaw Bar Only item." : {
+
+    },
+    "Shown with %@’s other items" : {
 
     },
     "Shown, hidden and always hidden" : {
