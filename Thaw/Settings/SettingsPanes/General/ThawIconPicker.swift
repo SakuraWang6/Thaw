@@ -53,13 +53,9 @@ struct ThawIconPicker: View {
             allowedContentTypes: [.image]
         ) { result in
             do {
-                let url = try result.get()
-                if url.startAccessingSecurityScopedResource() {
-                    defer { url.stopAccessingSecurityScopedResource() }
-                    let data = try Data(contentsOf: url)
-                    settings.thawIcon = ControlItemImageSet(name: .custom, image: .data(data))
-                    reportIconPersistenceFailure()
-                }
+                let data = try result.get().contentsOfPickedFile()
+                settings.thawIcon = ControlItemImageSet(name: .custom, image: .data(data))
+                reportIconPersistenceFailure()
             } catch {
                 presentedError = LocalizedErrorWrapper(error)
             }

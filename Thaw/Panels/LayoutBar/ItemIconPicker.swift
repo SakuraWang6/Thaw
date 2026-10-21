@@ -113,14 +113,7 @@ private struct ItemIconPickerView: View {
         .padding(ThawSpacing.gutter)
         .fileImporter(isPresented: $isImporting, allowedContentTypes: [.image]) { result in
             do {
-                let url = try result.get()
-                let didAccess = url.startAccessingSecurityScopedResource()
-                defer {
-                    if didAccess {
-                        url.stopAccessingSecurityScopedResource()
-                    }
-                }
-                guard let image = NSImage(contentsOf: url) else { return }
+                guard let image = try NSImage(data: result.get().contentsOfPickedFile()) else { return }
                 image.size = Self.menuBarSize(for: image.size)
                 choose(image)
             } catch {
