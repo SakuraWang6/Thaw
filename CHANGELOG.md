@@ -39,7 +39,6 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 - **Simple Mode fits on one page.** It shows a preview of your sections, which you can turn off, then a few settings: launch at login, item arrangement, when items hide again, the Always Hidden section, the shortcut and automatic updates. Everything else keeps working and stays in the full window. By @diazdesandi.
 - **The profile menu left the Settings toolbar.** Switch profiles from Profiles, the Thaw menu or a shortcut. By @diazdesandi.
 - **Profiles shows one profile at a time.** Pick a profile in the list to see its shortcut, display, Space and Focus, and what applying it would change, on the page instead of in a sheet. Switching profiles by display or Space moved here from Automation. By @diazdesandi.
-- **Hovering doesn't show or hide hidden items while ⌘ is held,** so the bar doesn't rearrange under a ⌘-drag. By @diazdesandi.
 
 ### Fixed
 
@@ -64,6 +63,10 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 - **The menu bar shape hides during Mission Control again.** On macOS 27 an empty outline of your Appearance shape stayed across the top of the screen while Mission Control was open. Reported by @fateoffuriou in [#1359](https://github.com/orgs/thaw-app/discussions/1359). Fixed by @diazdesandi.
 - **Hidden icons in Layout match the Visible ones.** macOS draws each menu bar icon in black or white to suit the wallpaper behind it, so hidden icons could show up black next to white visible ones. Layout and the pop-out editor draw one-color icons in the row's own ink. By @diazdesandi.
 - **The Rules result in Settings search is translated.** Its description showed in English whatever your language. By @diazdesandi.
+- **Hover waits while ⌘ is held.** Hidden items don't show or hide during a ⌘-drag, so the bar doesn't rearrange while you move an icon. By @diazdesandi.
+- **Hover shows hidden items again after a click in empty menu bar space.** The click paused hover until the section was next hidden, so if you only reveal by hovering, hover stayed off until Thaw restarted. Hover comes back as soon as the pointer leaves the menu bar. By @diazdesandi.
+- **With Native hiding, Layout says which hidden icons stay in the menu bar.** macOS shows or hides an app as a whole, and with Native hiding an app stays visible while any of its icons is in Visible. Layout marks its Hidden and Always Hidden icons as shown with the app's other items, offers to move them together, and no longer dims Visible icons that are on the bar. Reported by @felixkaiser in [#1367](https://github.com/thaw-app/Thaw/issues/1367). Fixed by @diazdesandi.
+- **A ⌘-drag in Manual arrangement only changes the sections of the icons it moves.** After a drag, Thaw read every icon's stored position, and in Manual those are often out of date, so icons you didn't touch could change sections. Switching to Manual keeps the sections you set in Layout too. By @diazdesandi.
 
 ## [3.0.0-beta.3] - 2026-10-19
 
