@@ -107,14 +107,11 @@ struct OnboardingBentoView: View {
 
     private var controls: some View {
         HStack(spacing: ThawSpacing.gutter) {
-            Picker("Simple Mode", selection: $simpleMode) {
-                Text("Simple Mode").tag(true)
-                Text("All Settings").tag(false)
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            // Sized to its own labels rather than to a point width: both
-            // segments are translated and neither fits 180 in every language.
+            ThawPillPicker(selection: $simpleMode, options: [
+                ThawPillPicker.Option(true, title: "Simple Mode"),
+                ThawPillPicker.Option(false, title: "All Settings"),
+            ])
+            // Held at its labels' size, since both are translated and neither may be cut off.
             .fixedSize()
             .accessibilityLabel(Text("Simple Mode"))
 
