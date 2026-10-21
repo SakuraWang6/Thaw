@@ -39,6 +39,7 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 - **Simple Mode fits on one page.** It shows a preview of your sections, which you can turn off, then a few settings: launch at login, item arrangement, when items hide again, the Always Hidden section, the shortcut and automatic updates. Everything else keeps working and stays in the full window. By @diazdesandi.
 - **The profile menu left the Settings toolbar.** Switch profiles from Profiles, the Thaw menu or a shortcut. By @diazdesandi.
 - **Profiles shows one profile at a time.** Pick a profile in the list to see its shortcut, display, Space and Focus, and what applying it would change, on the page instead of in a sheet. Switching profiles by display or Space moved here from Automation. By @diazdesandi.
+- **Hovering doesn't show or hide hidden items while ⌘ is held,** so the bar doesn't rearrange under a ⌘-drag. By @diazdesandi.
 
 ### Fixed
 

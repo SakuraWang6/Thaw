@@ -30,6 +30,20 @@ extension HIDEventManager {
         showOnHover && (!sectionIsHidden || showOnHoverAllowed)
     }
 
+    /// Whether hover reveals and hides wait while ⌘ is down or an item is being ⌘-dragged.
+    /// Showing or hiding a section reflows the bar, which shouldn't happen under a
+    /// drag MenuBarAgent is handling.
+    static nonisolated func holdsHoverChanges(
+        modifierFlags: NSEvent.ModifierFlags,
+        isDraggingMenuBarItem: Bool
+    ) -> Bool {
+        isDraggingMenuBarItem || modifierFlags.contains(.command)
+    }
+
+    private var hoverChangesAreHeld: Bool {
+        Self.holdsHoverChanges(modifierFlags: NSEvent.modifierFlags, isDraggingMenuBarItem: isDraggingMenuBarItem)
+    }
+
     private func isMouseNearMenuBar(screen: NSScreen, verticalPadding: CGFloat = 80) -> Bool {
         guard
             let mouseLocation = MouseHelpers.locationAppKit,
@@ -156,6 +170,14 @@ extension HIDEventManager {
             return
         }
 
+        guard !hoverChangesAreHeld else {
+            if let pending = pendingHoverAction {
+                Self.diagLog.debug("hover: held while ⌘ is down or an item is dragged")
+                cancelPendingHover(pending)
+            }
+            return
+        }
+
         guard hiddenSection.isHidden else {
             armHoverHide(hiddenSection, appState: appState, screen: screen)
             return
@@ -195,6 +217,10 @@ extension HIDEventManager {
         }
         Self.diagLog.debug("hover show: armed for \(configuration.showOnHoverDelay) s")
         scheduleHover(.show, after: configuration.showOnHoverDelay) {
+            guard !self.hoverChangesAreHeld else {
+                Self.diagLog.debug("hover show: skipped, ⌘ is down or an item is dragged")
+                return
+            }
             // Recheck empty space and enabled state, skipped while the reveal was pending.
             guard
                 self.isEnabled,
@@ -271,6 +297,7 @@ extension HIDEventManager {
             // The await can allow newer pointer events to rearm or cancel this hide; recheck before hiding.
             guard
                 !Task.isCancelled,
+                !self.hoverChangesAreHeld,
                 self.isEnabled,
                 self.configuration.autoRehide,
                 !self.isMouseInsideMenuBarHoverBand(appState: appState, screen: screen),
