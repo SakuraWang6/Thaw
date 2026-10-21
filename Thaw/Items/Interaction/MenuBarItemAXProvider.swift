@@ -10,6 +10,7 @@ import Cocoa
 import MenuBarModel
 import os.lock
 import PlatformRuntimeKit
+import Synchronization
 import ThawAXCore
 import ThawConcurrency
 
@@ -174,21 +175,17 @@ nonisolated enum MenuBarItemAXProvider {
     }
 
     private static let lateAnswers = AsyncChannel<LateAnswer>()
-    private static let lateAnswerPumpStarted = OSAllocatedUnfairLock(initialState: false)
+    private static let lateAnswerPumpStarted = Atomic<Bool>(false)
     private static let mergedLateAnswers = OSAllocatedUnfairLock(
         initialState: [pid_t: LateAnswer]()
     )
 
-    /// Starts the one-time pump for late answers. The flag's result must be
-    /// used: a return inside the lock closure only leaves the closure, and
-    /// every enumeration would spawn another immortal consumer.
+    /// Starts the pump for late answers once. Each pump is a consumer that
+    /// never ends, so every later call must find the flag set and return.
     private static func startLateAnswerPump() {
-        let shouldStart = lateAnswerPumpStarted.withLock { started -> Bool in
-            guard !started else { return false }
-            started = true
-            return true
+        guard lateAnswerPumpStarted.compareExchange(expected: false, desired: true, ordering: .relaxed).exchanged else {
+            return
         }
-        guard shouldStart else { return }
         Task {
             for await answer in lateAnswers {
                 mergedLateAnswers.withLock { answers in
