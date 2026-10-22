@@ -147,6 +147,122 @@ struct DrawnOnlyItemsTests {
         let tall = CGRect(x: 1200, y: 0, width: 30, height: 50)
         #expect(DrawnOnlyItems.normalizedFrame(entry: tall, band: nil, ceiling: 40) == CGRect(x: 1200, y: 5, width: 30, height: 40))
     }
+
+    // MARK: Ledger
+
+    @Test
+    func `confirms an owner only after it stays drawn and silent for two seconds`() {
+        let ledger = DrawnOnlyOwnerLedger()
+        let start = ContinuousClock.now
+        let first = ledger.confirm(silent: [silentPID], answered: [silentPID], running: [silentPID], now: start)
+        #expect(first.confirmed.isEmpty)
+        let early = ledger.confirm(silent: [silentPID], answered: [silentPID], running: [silentPID], now: start + .seconds(1))
+        #expect(early.confirmed.isEmpty)
+        let late = ledger.confirm(silent: [silentPID], answered: [silentPID], running: [silentPID], now: start + .seconds(2))
+        #expect(late == DrawnOnlyOwnerLedger.Confirmation(confirmed: [silentPID], newlyConfirmed: [silentPID]))
+        let again = ledger.confirm(silent: [silentPID], answered: [silentPID], running: [silentPID], now: start + .seconds(3))
+        #expect(again == DrawnOnlyOwnerLedger.Confirmation(confirmed: [silentPID], newlyConfirmed: []))
+    }
+
+    @Test
+    func `an owner that publishes through AX starts over`() {
+        let ledger = DrawnOnlyOwnerLedger()
+        let start = ContinuousClock.now
+        _ = ledger.confirm(silent: [silentPID], answered: [silentPID], running: [silentPID], now: start)
+        _ = ledger.confirm(silent: [], answered: [silentPID], running: [silentPID], now: start + .seconds(1))
+        #expect(ledger.owners.isEmpty)
+        let back = ledger.confirm(silent: [silentPID], answered: [silentPID], running: [silentPID], now: start + .seconds(2))
+        #expect(back.confirmed.isEmpty)
+    }
+
+    @Test
+    func `an owner that was not asked this pass keeps its place`() {
+        let ledger = DrawnOnlyOwnerLedger()
+        let start = ContinuousClock.now
+        _ = ledger.confirm(silent: [silentPID], answered: [silentPID], running: [silentPID], now: start)
+        _ = ledger.confirm(silent: [], answered: [], running: [silentPID], now: start + .seconds(1))
+        let late = ledger.confirm(silent: [silentPID], answered: [silentPID], running: [silentPID], now: start + .seconds(2))
+        #expect(late.confirmed == [silentPID])
+    }
+
+    @Test
+    func `an owner that quits is dropped`() {
+        let ledger = DrawnOnlyOwnerLedger()
+        let start = ContinuousClock.now
+        _ = ledger.confirm(silent: [silentPID], answered: [silentPID], running: [silentPID], now: start)
+        _ = ledger.confirm(silent: [], answered: [], running: [], now: start + .seconds(1))
+        #expect(ledger.owners.isEmpty)
+    }
+
+    @Test
+    func `reports each skipped owner once`() {
+        let ledger = DrawnOnlyOwnerLedger()
+        #expect(ledger.firstSkips(of: [silentPID]) == [silentPID])
+        #expect(ledger.firstSkips(of: [silentPID]).isEmpty)
+    }
+
+    // MARK: Merge
+
+    private var pass: DrawnOnlyItems.Pass {
+        DrawnOnlyItems.Pass(apps: [silentPID: app], excluded: [], axItems: [axItem(7, x: 100)], ceiling: 40)
+    }
+
+    private func confirmedLedger(now: ContinuousClock.Instant) -> DrawnOnlyOwnerLedger {
+        let ledger = DrawnOnlyOwnerLedger()
+        _ = ledger.confirm(silent: [silentPID], answered: [silentPID], running: [silentPID], now: now - .seconds(3))
+        return ledger
+    }
+
+    @Test
+    func `a settled read replaces the empty answer of a confirmed owner`() throws {
+        let now = ContinuousClock.now
+        let resolution = DrawnOnlyItems.resolve(
+            pending: [silentPID], read: [entry(silentPID, x: 1200)], pass: pass, ledger: confirmedLedger(now: now), now: now
+        )
+        let item = try #require(DrawnOnlyItems.rawItem(ownerPID: silentPID, app: app, frame: CGRect(x: 1200, y: 4, width: 30, height: 22)))
+        #expect(resolution.answers == [silentPID: .record([item])])
+        #expect(resolution.newlyConfirmed == [silentPID])
+    }
+
+    @Test
+    func `an owner not yet confirmed records its empty answer`() {
+        let resolution = DrawnOnlyItems.resolve(
+            pending: [silentPID], read: [entry(silentPID, x: 1200)], pass: pass, ledger: DrawnOnlyOwnerLedger()
+        )
+        #expect(resolution.answers == [silentPID: .record([])])
+    }
+
+    @Test
+    func `a read taken mid-change keeps the prior answer`() {
+        let now = ContinuousClock.now
+        let ledger = confirmedLedger(now: now)
+        let resolution = DrawnOnlyItems.resolve(pending: [silentPID], read: nil, pass: pass, ledger: ledger, now: now)
+        #expect(resolution.answers == [silentPID: .keepPrior])
+        #expect(ledger.owners == [silentPID])
+    }
+
+    @Test
+    func `a settled read without the owner records its empty answer`() {
+        let now = ContinuousClock.now
+        let ledger = confirmedLedger(now: now)
+        let resolution = DrawnOnlyItems.resolve(pending: [silentPID], read: [entry(8, x: 900)], pass: pass, ledger: ledger, now: now)
+        #expect(resolution.answers == [silentPID: .record([])])
+        #expect(ledger.owners.isEmpty)
+    }
+
+    @Test
+    func `a skipped owner with several entries records its empty answer`() {
+        let now = ContinuousClock.now
+        let resolution = DrawnOnlyItems.resolve(
+            pending: [silentPID],
+            read: [entry(silentPID, x: 1100), entry(silentPID, x: 1200)],
+            pass: pass,
+            ledger: confirmedLedger(now: now),
+            now: now
+        )
+        #expect(resolution.answers == [silentPID: .record([])])
+        #expect(resolution.newlySkipped == [silentPID])
+    }
 }
 
 private extension MenuBarItemAXProvider.RawItem {

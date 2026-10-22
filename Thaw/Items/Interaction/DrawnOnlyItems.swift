@@ -7,6 +7,7 @@
 
 import CoreGraphics
 import MenuBarModel
+import Synchronization
 import ThawAXCore
 
 /// Status items that MenuBarAgent's window lists but whose app's own tree does not.
@@ -37,6 +38,31 @@ nonisolated enum DrawnOnlyItems {
         let owners: [pid_t: Entry]
         /// Owners left out because they have more than one drawn entry.
         let multiEntryOwners: Set<pid_t>
+    }
+
+    /// How a pass records an owner whose empty answer waited on the drawn read.
+    enum Answer: Equatable, Sendable {
+        case record([RawItem])
+        /// The drawn read was taken mid-change, so the owner's last answer stands and the pass is incomplete.
+        case keepPrior
+    }
+
+    /// What one pass knows besides the drawn read.
+    struct Pass: Sendable {
+        let apps: [pid_t: App]
+        /// This app's pid, MenuBarAgent's and the control pids.
+        let excluded: Set<pid_t>
+        /// The items the AX walk read this pass.
+        let axItems: [RawItem]
+        /// The tallest frame that still counts as a status item.
+        let ceiling: CGFloat
+    }
+
+    /// The result of settling a pass's waiting owners.
+    struct Resolution: Equatable, Sendable {
+        let answers: [pid_t: Answer]
+        let newlyConfirmed: Set<pid_t>
+        let newlySkipped: Set<pid_t>
     }
 
     /// More than this share of an entry's width covered by an AX item means the item is already read.
@@ -132,5 +158,112 @@ nonisolated enum DrawnOnlyItems {
         }
         guard entry.height > ceiling else { return entry }
         return entry.insetBy(dx: 0, dy: (entry.height - ceiling) / 2)
+    }
+
+    /// Settles the owners whose empty answer waited on the drawn read.
+    ///
+    /// A settled read records the synthesized item for each confirmed owner and nothing for the rest.
+    /// A nil read, taken mid-change, keeps every waiting owner's last answer and guesses nothing.
+    static func resolve(
+        pending: Set<pid_t>,
+        read: [Entry]?,
+        pass: Pass,
+        ledger: DrawnOnlyOwnerLedger,
+        now: ContinuousClock.Instant = .now
+    ) -> Resolution {
+        guard let read else {
+            return Resolution(answers: pending.reduce(into: [:]) { $0[$1] = .keepPrior }, newlyConfirmed: [], newlySkipped: [])
+        }
+        let selection = silentDrawnOwners(
+            entries: read, answeredEmpty: pending, excluded: pass.excluded, apps: pass.apps, axItems: pass.axItems
+        )
+        let confirmation = ledger.confirm(
+            silent: Set(selection.owners.keys),
+            answered: pending.union(pass.axItems.map(\.ownerPID)),
+            running: Set(pass.apps.keys),
+            now: now
+        )
+        let band = band(of: pass.axItems)
+        var answers: [pid_t: Answer] = [:]
+        for owner in pending {
+            guard confirmation.confirmed.contains(owner), let entry = selection.owners[owner], let app = pass.apps[owner],
+                  let item = rawItem(
+                      ownerPID: owner, app: app, frame: normalizedFrame(entry: entry.frame, band: band, ceiling: pass.ceiling)
+                  )
+            else {
+                answers[owner] = .record([])
+                continue
+            }
+            answers[owner] = .record([item])
+        }
+        return Resolution(
+            answers: answers,
+            newlyConfirmed: confirmation.newlyConfirmed,
+            newlySkipped: ledger.firstSkips(of: selection.multiEntryOwners)
+        )
+    }
+}
+
+/// Owners found drawn and silent, and since when.
+///
+/// An owner must stay drawn and silent for the confirmation delay before its item is synthesized, so
+/// an app that publishes its items a moment after drawing them is read the normal way. An owner that
+/// answers with items, or is no longer drawn, leaves; one that quits is dropped.
+nonisolated final class DrawnOnlyOwnerLedger: Sendable {
+    static let confirmationDelay = Duration.seconds(2)
+
+    struct Confirmation: Equatable, Sendable {
+        let confirmed: Set<pid_t>
+        let newlyConfirmed: Set<pid_t>
+    }
+
+    private struct State {
+        var silentSince: [pid_t: ContinuousClock.Instant] = [:]
+        var confirmed: Set<pid_t> = []
+        var skipped: Set<pid_t> = []
+    }
+
+    private let state = Mutex(State())
+
+    /// The owners being watched, confirmed or not.
+    var owners: Set<pid_t> {
+        state.withLock { Set($0.silentSince.keys) }
+    }
+
+    /// Records one pass and returns the owners silent for at least the confirmation delay.
+    ///
+    /// - Parameters:
+    ///   - silent: Owners drawn and silent this pass.
+    ///   - answered: Owners that answered this pass. Those not silent leave.
+    ///   - running: The running pids. Every other owner is dropped.
+    func confirm(
+        silent: Set<pid_t>,
+        answered: Set<pid_t>,
+        running: Set<pid_t>,
+        now: ContinuousClock.Instant = .now
+    ) -> Confirmation {
+        state.withLock { state in
+            let leaving = answered.subtracting(silent)
+            state.silentSince = state.silentSince.filter { running.contains($0.key) && !leaving.contains($0.key) }
+            state.skipped.formIntersection(running)
+            for owner in silent where state.silentSince[owner] == nil {
+                state.silentSince[owner] = now
+            }
+            let confirmed = Set(silent.filter { owner in
+                state.silentSince[owner].map { now - $0 >= Self.confirmationDelay } == true
+            })
+            let newlyConfirmed = confirmed.subtracting(state.confirmed)
+            state.confirmed = state.confirmed.intersection(state.silentSince.keys).union(confirmed)
+            return Confirmation(confirmed: confirmed, newlyConfirmed: newlyConfirmed)
+        }
+    }
+
+    /// The owners among skipped not reported before, so each skip is logged once per process.
+    func firstSkips(of skipped: Set<pid_t>) -> Set<pid_t> {
+        state.withLock { state in
+            let fresh = skipped.subtracting(state.skipped)
+            state.skipped.formUnion(fresh)
+            return fresh
+        }
     }
 }
