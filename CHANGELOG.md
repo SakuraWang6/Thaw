@@ -73,6 +73,7 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 - **Apps you switched off in System Settings > Menu Bar stay off when Thaw restarts.** If such an app was also in Thaw's Hidden section, restarting Thaw switched it back on, with either hiding method. Thaw now only switches on apps it switched off itself, and if it can't read its record of them, it asks before setting that record aside instead of guessing. Reported by @Snowman833 in [#1367](https://github.com/thaw-app/Thaw/issues/1367). Fixed by @diazdesandi.
 - **One app is no longer listed many times in Hidden or Always Hidden.** When an app changed an icon's name, Thaw kept the old name as one more icon of that app. Reported by @felixkaiser in [#1367](https://github.com/thaw-app/Thaw/issues/1367). Fixed by @diazdesandi.
 - **VoiceOver and other accessibility tools no longer crash Thaw on About.** Reading the version line sent Thaw into a loop asking itself for the same label, until it crashed. By @diazdesandi.
+- **Icons keep their pictures when a menu bar item changes width.** When an item such as a network traffic meter grew or shrank, Thaw threw away its picture and the pictures of every icon to its right in Layout and the Thaw Bar until the next capture. Now it keeps the last picture and takes a new one once the icons settle. By @diazdesandi.
 
 ## [3.0.0-beta.3] - 2026-10-19
 
