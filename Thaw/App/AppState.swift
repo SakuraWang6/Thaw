@@ -74,6 +74,13 @@ final class AppState {
     /// Owner of user-authored menu bar item groups.
     let itemGroupManager = MenuBarItemGroupManager()
 
+    /// Saves layout changes into the active profile when it keeps them.
+    @ObservationIgnored private(set) lazy var profileLayoutKeeper = ProfileLayoutKeeper(
+        profileManager: profileManager,
+        itemManager: itemManager,
+        groupManager: itemGroupManager
+    )
+
     /// Transient, user-facing explanations for refused layout actions.
     let layoutFeedback = LayoutBarFeedbackCenter()
 
@@ -240,6 +247,7 @@ final class AppState {
         }
         userNotificationManager.performSetup(with: self)
         profileManager.performSetup(with: self)
+        itemManager.repairs.onUserLayoutChange = { [weak self] in self?.profileLayoutKeeper.noteUserLayoutChange() }
         controlCommandObserver.performSetup(with: self)
         controlStatePublisher.performSetup(with: self)
         swapBarManager.performSetup(with: self)

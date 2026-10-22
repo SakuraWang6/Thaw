@@ -60,6 +60,11 @@ struct ProfileSettingsPane: View {
                     profile: selected,
                     errorMessage: $errorMessage
                 )
+                ProfileLayoutBehaviorSection(
+                    profileManager: profileManager,
+                    profile: selected,
+                    errorMessage: $errorMessage
+                )
                 ProfileChangesSection(
                     profile: previewedProfile,
                     diff: previewedDiff,

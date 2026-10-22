@@ -677,5 +677,6 @@ extension Defaults {
         case globalPreProfileHook = "GlobalPreProfileHook"
         case globalPostProfileHook = "GlobalPostProfileHook"
         case lastSettledProfileID = "LastSettledProfileID"
+        case lastActiveProfileID = "LastActiveProfileID"
     }
 }

@@ -18,6 +18,7 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 
 ### New
 
+- **Profiles can keep your layout changes.** Each profile has a Layout section in Settings > Profiles. "Keep layout changes in this profile", on by default, saves your icon moves to the active profile. "Apply again when Thaw starts", off by default, puts the profile's saved layout back at every start instead. Suggested by Keylag. By @diazdesandi.
 - **About links to Floe,** the launcher from the same team. By @diazdesandi.
 - **Experimental: four more glass finishes.** Appearance offers Invert, Edge, Sheer and Dim next to Regular and Clear. Edge, Sheer and Dim follow the shade macOS gives your menu bar icons, so dark icons sit on light glass and light icons on dark glass. A finish macOS doesn't support falls back to the standard glass. By @diazdesandi.
 - **More section divider styles.** Besides None and Chevron, Settings > Layout > Section divider style offers Line, Dot, Slash and Custom, which draws an image you choose, like a custom Thaw icon. By @diazdesandi.
@@ -48,6 +49,7 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 
 ### Fixed
 
+- **Your layout survives a restart or logout when a profile switches by display or Space.** Starting Thaw applied that profile again and moved icons back to where the profile had them, such as an item you had dragged into Always Hidden. Thaw now keeps the menu bar as you left it when the same profile is still active. Reported by Keylag. Fixed by @diazdesandi.
 - **A ⌘-drag into another section sticks the first time.** Thaw could put the dragged icon back in its old section a few seconds after you dropped it, so you had to drag it again. By @diazdesandi.
 - **Hidden items go away again quickly after Settings opens.** Opening Settings briefly shows hidden items to take pictures of their icons. With many apps running, some, such as Stats, could stay on the bar for over 15 seconds. They now go away within about 3 seconds. By @diazdesandi.
 - **Right-clicking a hidden item in the Thaw Bar opens its menu without showing the item,** when the app supports it, and a menu that opens a little late is no longer opened a second time. By @diazdesandi.
