@@ -90,7 +90,7 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 
 ### Known issues
 
-- **On macOS 27.0.1, ⌘-dragging the microphone or screen recording indicator makes macOS's menu bar process restart** about a minute later, with or without Thaw. Afterwards some icons can come back out of order; dragging them into place on the menu bar fixes it. macOS 27.2 doesn't have this problem. Reported by Keylag.
+- **On macOS 27.0.1, ⌘-dragging the microphone or screen recording indicator makes macOS's menu bar process restart** about a minute later, with or without Thaw. Afterwards some icons can come back out of order; dragging them into place on the menu bar fixes it. The app doing the recording can crash too; OBS did in one report. A Control Center control such as Timers can stay missing after the restart; opening Edit Controls brings it back. macOS 27.2 doesn't have this problem. Reported by Keylag.
 - **With about 240 apps running, Thaw can't read the whole menu bar in time,** so icons can go missing from Layout for a moment or come back in a different order. Reported by @joaofrgomes in [#1367](https://github.com/thaw-app/Thaw/issues/1367).
 - **Zoom and some other apps can't be hidden with the Native hiding method,** because macOS's list in System Settings > Menu Bar has no entry for them. They stay on the menu bar.
 
