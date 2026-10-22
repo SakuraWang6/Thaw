@@ -873,11 +873,7 @@ extension MenuBarItemImageCache {
     ) async {
         // Before the failure reset and the reveal: a locked pass must not toggle
         // the lock screen's bar or clear strikes it did not earn back.
-        // Without Screen Recording a reveal cannot be photographed; it would only flash hidden items on the bar.
-        guard !skipCaptureWhileScreenLocked("prewarmConcealedImages"),
-              appState?.menuBarManager.sectionController != nil,
-              appState?.isPermissionGranted(.screenRecording) == true
-        else {
+        guard !skipCaptureWhileScreenLocked("prewarmConcealedImages"), ConcealedPrewarmGate.mayReveal(for: appState) else {
             return
         }
 
@@ -885,7 +881,9 @@ extension MenuBarItemImageCache {
         // other's screenshot. A queued pass whose bar closed stops here.
         await beginConcealedPrewarm()
         defer { endConcealedPrewarm() }
-        guard !Task.isCancelled, !skipCaptureWhileScreenLocked("queued prewarm") else { return }
+        // The hiding method can change while a pass waits its turn.
+        guard !Task.isCancelled, !skipCaptureWhileScreenLocked("queued prewarm"),
+              ConcealedPrewarmGate.mayReveal(for: appState) else { return }
 
         let sections = requestedSections.reduce(into: [MenuBarSection.Name]()) { result, section in
             guard section != .visible, !result.contains(section) else { return }
