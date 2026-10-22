@@ -258,6 +258,8 @@ nonisolated enum MenuBarItemAXProvider {
         // counters tell one slow app from sheer app count in the log.
         var appsProbed = 0
         var appsWithExtrasBar = 0
+        // Owners that answered this pass with no items, so a drawn one can be told apart.
+        var answeredEmpty = Set<pid_t>()
         defer {
             let elapsed = ContinuousClock.now - walkStart
             diagLog.info(
@@ -383,12 +385,15 @@ nonisolated enum MenuBarItemAXProvider {
                 }
             case let .some(result):
                 slowResponders.withLock { $0.answered(ownerPID) }
-                if !result.isEmpty {
+                if result.isEmpty {
+                    answeredEmpty.insert(ownerPID)
+                } else {
                     appsWithExtrasBar += 1
                 }
                 state.record(result, owner: ownerPID, generation: pass.generation)
             }
         }
+        noteDrawnSilentOwners(answeredEmpty.subtracting(controlPIDs), walkStart: walkStart, apps: appsByPID)
 
         let items = assemble(state.observations)
         let freshItems = assemble(state.freshObservations(generation: pass.generation))
@@ -408,6 +413,14 @@ nonisolated enum MenuBarItemAXProvider {
             hasFreshKnownInventory: state.hasFreshKnownInventory(generation: pass.generation),
             hasFreshMoveInventory: hasFreshMoveInventory
         ), state)
+    }
+
+    /// Hands the owners that answered empty to the diagnostics when the walk's plan read the bar.
+    private static func noteDrawnSilentOwners(
+        _ answeredEmpty: Set<pid_t>, walkStart: ContinuousClock.Instant, apps: [pid_t: NSRunningApplication]
+    ) {
+        guard let drawn = drawnBar.reading(since: walkStart - .seconds(2))?.entries else { return }
+        drawnSilentOwners.note(drawn: drawn, answeredEmpty: answeredEmpty, apps: apps)
     }
 
     /// Awaits task's value, or nil if the waiter is cancelled first.
@@ -676,7 +689,7 @@ nonisolated enum MenuBarItemAXProvider {
     /// The bar as MenuBarAgent draws it, read off the main actor. Nil when unreadable or mid-change.
     @concurrent
     static func drawnBarConcurrent() async -> [MenuBarAgentWindow.Entry]? {
-        AXPrimitives.menuBarAgentSettledEntries()
+        drawnBar.read()
     }
 
     /// Re-reads the owners appearance already knows, skipping discovery's
@@ -706,7 +719,7 @@ nonisolated enum MenuBarItemAXProvider {
     ) async -> InventorySnapshot {
         let plan = InventoryWalkPlan.make(
             requested: priorityPIDs,
-            drawnOwners: AXPrimitives.menuBarAgentDrawnOwners(),
+            drawnOwners: drawnBar.read().map { Set($0.map(\.ownerPID)) },
             lastFullWalk: fullWalks.lastFullWalk
         )
         // A settled read waits out a full walk in flight. Cancelling it would put off the one read that checks the shortcut.
@@ -724,6 +737,11 @@ nonisolated enum MenuBarItemAXProvider {
 
     /// See InventoryWalkPlan.
     private static let fullWalks = FullWalkLedger()
+
+    /// The read of MenuBarAgent's window each plan is made from.
+    private static let drawnBar = DrawnBarLedger()
+
+    private static let drawnSilentOwners = DrawnSilentOwnerDiagnostics()
 
     /// See nativeOverflowControlBounds(on:).
     @concurrent
