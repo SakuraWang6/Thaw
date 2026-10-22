@@ -373,6 +373,7 @@ final class AppState {
         config.addsToRecentItems = false
         config.createsNewApplicationInstance = true
         config.promptsUserIfNeeded = false
+        config.arguments = SingleInstanceRule.relaunchArguments(replacing: ProcessInfo.processInfo.processIdentifier)
 
         Task { @MainActor in
             do {

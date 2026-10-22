@@ -39,6 +39,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         #endif
 
+        // Another copy must be resolved before this one touches the menu bar, permissions or native hiding.
+        guard SingleInstanceGuard.enforce() else { return }
+
         // Set AX timeout before creating elements: synchronous IPC can stall when a target stops pumping events.
         // Override with defaults write com.stonerl.Thaw axMessagingTimeout -float <seconds>.
         AXElement.defaultMessagingTimeout = Float(

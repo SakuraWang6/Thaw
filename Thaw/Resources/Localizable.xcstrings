@@ -313,6 +313,9 @@
     "%@ Groups always move together, so no items were moved." : {
       "comment" : "Explanation shown when a whole-group move was refused"
     },
+    "%@ Is Already Running" : {
+
+    },
     "%@ The groups are in the menu bar now, but they will not come back after a restart." : {
 
     },
@@ -367,6 +370,9 @@
           }
         }
       }
+    },
+    "%@ are running." : {
+
     },
     "%@ can check for updates automatically. You can also check manually from the menu bar or Settings %@ About." : {
       "localizations" : {
@@ -660,6 +666,9 @@
       "comment" : "Fallback in the release-notes sheet; placeholder is the app name."
     },
     "%@ couldn’t load the release notes." : {
+
+    },
+    "%@ didn’t quit, so this copy of %@ will quit instead." : {
 
     },
     "%@ failed with exit status %d." : {
@@ -4503,6 +4512,9 @@
     "An early idea; the builder and the readings can change between releases." : {
 
     },
+    "Another Copy of %@ Is Running" : {
+
+    },
     "App" : {
       "comment" : "Section header on the Simple Mode page grouping app-level rows such as launch at login."
     },
@@ -7809,6 +7821,15 @@
           }
         }
       }
+    },
+    "Couldn’t Quit %@" : {
+
+    },
+    "Couldn’t Quit the Other Copies" : {
+
+    },
+    "Couldn’t Quit the Other Copy" : {
+
     },
     "Couldn’t restart the menu bar" : {
 
@@ -25715,6 +25736,9 @@
     "One shape around the app menus, one around the icons." : {
 
     },
+    "Only one copy of %@ can manage the menu bar at a time." : {
+
+    },
     "Opacity" : {
       "comment" : "A label for the opacity of the menu bar.",
       "localizations" : {
@@ -26293,6 +26317,9 @@
           }
         }
       }
+    },
+    "Other Copies of %@ Are Running" : {
+
     },
     "Other built-in items are managed separately, and third-party items can always be hidden.\n\nWhile the Thaw Bar is off, hidden Clock, Control Center and Siri stay pinned to the right side of the layout. You can still switch them between visible and hidden." : {
 
@@ -27617,6 +27644,9 @@
         }
       }
     },
+    "Quit %@ and Continue" : {
+
+    },
     "Quit %@ without granting access" : {
 
     },
@@ -27632,6 +27662,15 @@
     "Quit Control Center and delete its preference files so the state of Apple's menu bar items can rebuild." : {
 
     },
+    "Quit It and Continue" : {
+
+    },
+    "Quit Them and Continue" : {
+
+    },
+    "Quit This Copy" : {
+
+    },
     "Quit and Clear Cache" : {
 
     },
@@ -27642,6 +27681,15 @@
 
     },
     "Quit and clear cache?" : {
+
+    },
+    "Quit this copy, or quit %@ and continue opening this one." : {
+
+    },
+    "Quit this copy, or quit the other copy and continue opening this one." : {
+
+    },
+    "Quit this copy, or quit them and continue opening this one." : {
 
     },
     "Radius" : {
@@ -36111,6 +36159,9 @@
 
     },
     "The other center symbols are decorative." : {
+
+    },
+    "The other copy of %@ is still running, so this copy will quit instead." : {
 
     },
     "The panel opens in the middle of the screen, the way Spotlight does, showing the items you used recently until you start typing." : {
