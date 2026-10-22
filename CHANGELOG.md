@@ -74,6 +74,9 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 - **One app is no longer listed many times in Hidden or Always Hidden.** When an app changed an icon's name, Thaw kept the old name as one more icon of that app. Reported by @felixkaiser in [#1367](https://github.com/thaw-app/Thaw/issues/1367). Fixed by @diazdesandi.
 - **VoiceOver and other accessibility tools no longer crash Thaw on About.** Reading the version line sent Thaw into a loop asking itself for the same label, until it crashed. By @diazdesandi.
 - **Icons keep their pictures when a menu bar item changes width.** When an item such as a network traffic meter grew or shrank, Thaw threw away its picture and the pictures of every icon to its right in Layout and the Thaw Bar until the next capture. Now it keeps the last picture and takes a new one once the icons settle. By @diazdesandi.
+- **Settings no longer blinks when a page moves to the app.** With Settings running in its own process, opening a page such as Layout closed the window about a second before the app's own Settings window appeared. Now the window stays until the new one is in front. By @diazdesandi.
+- **Always show hidden items follows the menu bar to another display right away.** When the active menu bar moved to another display, hidden items could take up to a second to show there. By @diazdesandi.
+- **Thaw changes nothing when it can't read its record of the apps it hid.** Layout locks the hiding method, says why and offers to set the record aside, then starts Native hiding again once you confirm. Restore Missing Items opens in that case too and lists every app switched off in System Settings, so you pick which ones to show. By @diazdesandi.
 
 ## [3.0.0-beta.3] - 2026-10-19
 
