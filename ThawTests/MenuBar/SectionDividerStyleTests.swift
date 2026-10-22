@@ -58,3 +58,24 @@ struct SectionDividerStyleTests {
         }
     }
 }
+
+@Suite("A divider keeps its drag sliver only while a section is revealed")
+struct DragSliverTests {
+    @Test func keepsItWhenTheDragRevealedASection() {
+        #expect(ControlItem.keepsDragSliver(showAllSectionsOnUserDrag: true, isDragging: true, revealedSection: .alwaysHidden))
+    }
+
+    /// 2026-10-22: with Native hiding the drag opens nothing, and both slivers
+    /// showed at the left end of the visible icons.
+    @Test func dropsItWhenTheDragRevealedNothing() {
+        #expect(!ControlItem.keepsDragSliver(showAllSectionsOnUserDrag: true, isDragging: true, revealedSection: nil))
+    }
+
+    @Test func dropsItWithoutADrag() {
+        #expect(ControlItem.keepsDragSliver(showAllSectionsOnUserDrag: true, isDragging: false, revealedSection: .hidden) == false)
+    }
+
+    @Test func dropsItWhenDragRevealIsOff() {
+        #expect(ControlItem.keepsDragSliver(showAllSectionsOnUserDrag: false, isDragging: true, revealedSection: .hidden) == false)
+    }
+}

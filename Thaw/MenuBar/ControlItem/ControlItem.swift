@@ -990,11 +990,11 @@ extension ControlItem {
             }
             button.isEnabled = true
             button.alphaValue = 1
-            // A drag reveals every section, and the user still needs to see
-            // where one ends and the next begins, so a dragged-over divider
-            // keeps a sliver of width and draws a "|" in it.
-            let keepsSliver = configuration.showAllSectionsOnUserDrag
-                && appState.isDraggingMenuBarItem
+            let keepsSliver = Self.keepsDragSliver(
+                showAllSectionsOnUserDrag: configuration.showAllSectionsOnUserDrag,
+                isDragging: appState.isDraggingMenuBarItem,
+                revealedSection: revealed
+            )
             collapseStatusItem(toWidth: keepsSliver ? 3 : 0)
             button.appearsDisabled = true
             button.isHighlighted = false
