@@ -31332,6 +31332,15 @@
     "Separate looks for Light and Dark Mode" : {
 
     },
+    "Set Aside" : {
+
+    },
+    "Set Aside Record…" : {
+
+    },
+    "Set aside the unreadable record?" : {
+
+    },
     "Set Menu Bar Profile" : {
       "comment" : "Title and description of the Focus Filter.",
       "localizations" : {
@@ -35094,6 +35103,9 @@
     "Thaw Bar Only items" : {
 
     },
+    "Thaw can't read its record of the apps it hid" : {
+
+    },
     "Thaw can’t read Control Center’s settings." : {
 
     },
@@ -35110,6 +35122,12 @@
 
     },
     "Thaw keeps items in the order you set in Layout. To move another app’s item it sometimes has to drag it for you, and your mouse is briefly unavailable while it does." : {
+
+    },
+    "Thaw keeps the file under a new name. Afterwards it can't tell which switched-off apps it hid, so you choose which ones to show and none are selected for you." : {
+
+    },
+    "Thaw moved the unreadable record to:" : {
 
     },
     "Thaw reads a %lld × %lld pt band at the top of the display. Nothing else on screen is captured." : {
@@ -35856,6 +35874,9 @@
           }
         }
       }
+    },
+    "The file that lists which apps Thaw switched off in System Settings → Menu Bar is damaged or was written by a version this one can't read. Until it is set aside, Thaw can't show which apps it hid." : {
+
     },
     "The Lab" : {
       "comment" : "Sidebar and search title of The Lab pane."

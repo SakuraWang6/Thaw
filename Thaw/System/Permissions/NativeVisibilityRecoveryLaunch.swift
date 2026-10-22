@@ -73,10 +73,31 @@ enum NativeVisibilityRecoveryLaunch {
         return applicationURL.deletingPathExtension().lastPathComponent
     }
 
+    /// True for the error the kit throws when a record exists but can't be read.
+    static func isUnreadableRecord(_ error: Error) -> Bool {
+        if case NativeAppVisibilityStoreError.journalUnreadable = error {
+            return true
+        }
+        return false
+    }
+
+    /// Keeps a copy of the records before the handoff. A record that can't be
+    /// read has nothing to keep, and the recovery screen offers to set it
+    /// aside, so the handoff goes ahead and the file stays where it is.
+    static func preserveRecordsBeforeHandoff(_ preserve: () throws -> Void) throws {
+        do {
+            try preserve()
+        } catch where isUnreadableRecord(error) {
+            return
+        }
+    }
+
     static func openRecovery() async throws {
         // The normal quit path may clear its journal using a cached read-back.
         // Keep a separate recovery intent until disk verification succeeds.
-        try NativeAppVisibilityRecovery().preserveRecoveryRecords()
+        try preserveRecordsBeforeHandoff {
+            try NativeAppVisibilityRecovery().preserveRecoveryRecords()
+        }
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.createsNewApplicationInstance = true
         configuration.arguments = [argument]
@@ -111,7 +132,9 @@ extension NativeVisibilityRecoveryModel {
                     forBundleID: bundleID,
                     applicationURL: NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID)
                 )
-            }
+            },
+            isUnreadableRecord: NativeVisibilityRecoveryLaunch.isUnreadableRecord,
+            setAsideUnreadableRecords: { try recovery.setAsideUnreadableRecords() }
         ))
     }
 }
