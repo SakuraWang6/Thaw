@@ -32,4 +32,17 @@ struct SimpleRehideChoiceTests {
         #expect(options.last == .after(42))
         #expect(SimpleRehideChoice.options(including: .after(30)).count == 8)
     }
+
+    @Test("Each choice is its own row and names itself, a minute as a minute")
+    func titles() {
+        let options = SimpleRehideChoice.options(including: .never)
+        #expect(Set(options.map(\.id)).count == options.count)
+        #expect(SimpleRehideChoice.never.title == "Never")
+        #expect(SimpleRehideChoice.whenClickingElsewhere.title == "When I click elsewhere")
+        #expect(SimpleRehideChoice.whenSwitchingApps.title == "When I switch apps")
+        #expect(SimpleRehideChoice.after(60).title == "After 1 minute")
+        let seconds = 15
+        #expect(SimpleRehideChoice.after(15).title == "After \(seconds) seconds")
+        #expect(SimpleRehideChoice.after(15).title != SimpleRehideChoice.after(60).title)
+    }
 }

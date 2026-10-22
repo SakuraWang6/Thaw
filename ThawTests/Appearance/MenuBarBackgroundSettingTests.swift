@@ -21,4 +21,10 @@ struct MenuBarBackgroundSettingTests {
         #expect(!MenuBarBackgroundSetting.isOn { _ in nil })
         #expect(!MenuBarBackgroundSetting.isOn { _ in "yes" })
     }
+
+    @Test
+    func `the live read takes the switch from the global domain`() {
+        let global = CFPreferencesCopyAppValue(MenuBarBackgroundSetting.key as CFString, kCFPreferencesAnyApplication)
+        #expect(MenuBarBackgroundSetting.isOn() == ((global as? NSNumber)?.boolValue ?? false))
+    }
 }

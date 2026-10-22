@@ -57,4 +57,33 @@ struct MenuBarPrivateGlassTests {
         #expect(MenuBarGlassStyle.solid.nsGlassStyle == .regular)
         #expect(MenuBarGlassStyle.sheer.nsGlassStyle == .clear)
     }
+
+    @Test
+    func `without the private setter only the default can be set`() {
+        let view = SetterlessGlass()
+        #expect(MenuBarPrivateGlass.apply(nil, to: view))
+        #expect(!MenuBarPrivateGlass.apply(11, to: view))
+    }
+
+    @Test
+    func `a finish that does not stick falls back to the public style`() {
+        let view = StubbornGlass()
+        #expect(!MenuBarPrivateGlass.apply(11, to: view))
+        #expect((view.value(forKey: MenuBarPrivateGlass.variantKey) as? NSNumber)?.intValue == 0)
+    }
+}
+
+/// Glass from a system without the private setter.
+private final class SetterlessGlass: NSGlassEffectView {
+    override func responds(to selector: Selector?) -> Bool {
+        selector == NSSelectorFromString("set\(MenuBarPrivateGlass.variantKey):") ? false : super.responds(to: selector)
+    }
+}
+
+/// Glass that takes the setter but keeps its default finish.
+private final class StubbornGlass: NSGlassEffectView {
+    override func setValue(_ value: Any?, forKey key: String) {
+        guard key != MenuBarPrivateGlass.variantKey || (value as? NSNumber)?.intValue == 0 else { return }
+        super.setValue(value, forKey: key)
+    }
 }
