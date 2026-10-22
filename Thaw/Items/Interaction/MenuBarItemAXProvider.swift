@@ -217,9 +217,7 @@ nonisolated enum MenuBarItemAXProvider {
         let formerHosts = UnseenMenuBarHosts.formerHosts()
         let runningApps = NSWorkspace.shared.runningApplications.filter { !$0.isTerminated }
         let appsByPID = Dictionary(runningApps.map { ($0.processIdentifier, $0) }, uniquingKeysWith: { first, _ in first })
-        let controlPIDs = Set(runningApps.filter {
-            $0.bundleIdentifier == ourBundleID || $0.bundleIdentifier == SharedConstants.menuBarHostingBundleID
-        }.map(\.processIdentifier))
+        let controlPIDs = controlPIDs(among: runningApps, ourBundleID: ourBundleID)
         var state = previousState
         let requiredOwners = controlPIDs.union(priorityPIDs)
         let pass = state.begin(
@@ -427,11 +425,32 @@ nonisolated enum MenuBarItemAXProvider {
         ), state)
     }
 
+    /// This app's pids and MenuBarAgent's, whose items are controls rather than managed items.
+    private static func controlPIDs(among runningApps: [NSRunningApplication], ourBundleID: String?) -> Set<pid_t> {
+        Set(runningApps.filter {
+            $0.bundleIdentifier == ourBundleID || $0.bundleIdentifier == SharedConstants.menuBarHostingBundleID
+        }.map(\.processIdentifier))
+    }
+
+    /// The drawn-only items the helper process's walk adds besides raw, which it read without
+    /// noting who answered empty. See DrawnOnlyItems.confirmedItems.
+    static func confirmedDrawnOnlyItems(besides raw: [RawItem]) -> [RawItem] {
+        guard drawnOnly.hasConfirmedOwners else { return [] }
+        let runningApps = NSWorkspace.shared.runningApplications.filter { !$0.isTerminated }
+        let recent = drawnBar.reading(since: .now - drawnReadAge)
+        return drawnOnly.confirmedItems(
+            read: recent.map(\.entries) ?? drawnBar.read(),
+            apps: Dictionary(runningApps.map { ($0.processIdentifier, $0) }, uniquingKeysWith: { first, _ in first }),
+            excluded: controlPIDs(among: runningApps, ourBundleID: Bundle.main.bundleIdentifier),
+            axItems: raw
+        )
+    }
+
     /// How old a drawn read may be when the walk starts and still count as this pass's.
     private static let drawnReadAge = Duration.seconds(2)
 
     /// Records the owners whose empty answer waited on the drawn read, reusing the plan's read when
-    /// it is recent. Subprocess walks do not take this path yet.
+    /// it is recent. Subprocess walks add the confirmed owners through confirmedDrawnOnlyItems(besides:).
     ///
     /// - Returns: Whether a read taken mid-change left an owner's last answer in place.
     private static func recordDrawnOnlyOwners(

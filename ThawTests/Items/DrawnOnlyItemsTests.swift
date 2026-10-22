@@ -294,6 +294,51 @@ struct DrawnOnlyItemsTests {
         let inventory = DrawnOnlyInventory()
         #expect(inventory.answers(pending: [], answeredEmpty: [], read: [entry(silentPID, x: 1200)], apps: [:], excluded: [], axItems: []).isEmpty)
     }
+
+    // MARK: Walks without empty answers
+
+    @Test
+    func `an inventory with no confirmed owner adds nothing to a helper walk`() {
+        let inventory = DrawnOnlyInventory()
+        #expect(!inventory.hasConfirmedOwners)
+        #expect(inventory.confirmedItems(read: [entry(silentPID, x: 1200)], apps: [:], excluded: [], axItems: []).isEmpty)
+        #expect(inventory.confirmedItems(read: nil, apps: [:], excluded: [], axItems: []).isEmpty)
+    }
+
+    @Test
+    func `the ledger confirms an owner once it has been silent for the delay`() {
+        let ledger = DrawnOnlyOwnerLedger()
+        let start = ContinuousClock.now
+        _ = ledger.confirm(silent: [silentPID], answered: [silentPID], running: [silentPID], now: start)
+        #expect(ledger.confirmedOwners(now: start + .seconds(1)).isEmpty)
+        #expect(ledger.confirmedOwners(now: start + .seconds(2)) == [silentPID])
+    }
+
+    @Test
+    func `a walk without empty answers adds the item of a confirmed owner it found nothing for`() throws {
+        let items = DrawnOnlyItems.confirmedItems(confirmed: [silentPID], read: [entry(silentPID, x: 1200)], pass: pass)
+        let item = try #require(items.first)
+        #expect(items.count == 1)
+        #expect(item.ownerPID == silentPID)
+        #expect(item.bounds.minX == 1200)
+    }
+
+    @Test
+    func `a walk without empty answers adds nothing for an owner it read items for`() {
+        let walked = DrawnOnlyItems.Pass(
+            apps: [silentPID: app], excluded: [], axItems: [axItem(silentPID, x: 600)], ceiling: 40
+        )
+        #expect(DrawnOnlyItems.confirmedItems(confirmed: [silentPID], read: [entry(silentPID, x: 1200)], pass: walked).isEmpty)
+    }
+
+    @Test
+    func `a walk without empty answers adds nothing for unconfirmed, multi-entry or covered owners`() {
+        #expect(DrawnOnlyItems.confirmedItems(confirmed: [], read: [entry(silentPID, x: 1200)], pass: pass).isEmpty)
+        let twice = [entry(silentPID, x: 1200), entry(silentPID, x: 1240)]
+        #expect(DrawnOnlyItems.confirmedItems(confirmed: [silentPID], read: twice, pass: pass).isEmpty)
+        let covered = DrawnOnlyItems.Pass(apps: [silentPID: app], excluded: [], axItems: [axItem(7, x: 1203)], ceiling: 40)
+        #expect(DrawnOnlyItems.confirmedItems(confirmed: [silentPID], read: [entry(silentPID, x: 1200)], pass: covered).isEmpty)
+    }
 }
 
 private extension MenuBarItemAXProvider.RawItem {

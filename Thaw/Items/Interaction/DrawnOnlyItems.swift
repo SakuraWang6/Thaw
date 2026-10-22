@@ -186,10 +186,8 @@ nonisolated enum DrawnOnlyItems {
         let band = band(of: pass.axItems)
         var answers: [pid_t: Answer] = [:]
         for owner in pending {
-            guard confirmation.confirmed.contains(owner), let entry = selection.owners[owner], let app = pass.apps[owner],
-                  let item = rawItem(
-                      ownerPID: owner, app: app, frame: normalizedFrame(entry: entry.frame, band: band, ceiling: pass.ceiling)
-                  )
+            guard confirmation.confirmed.contains(owner), let entry = selection.owners[owner],
+                  let item = item(for: owner, entry: entry, pass: pass, band: band)
             else {
                 answers[owner] = .record([])
                 continue
@@ -201,6 +199,28 @@ nonisolated enum DrawnOnlyItems {
             newlyConfirmed: confirmation.newlyConfirmed,
             newlySkipped: ledger.firstSkips(of: selection.multiEntryOwners)
         )
+    }
+
+    /// The items a walk that doesn't report empty answers adds, such as the helper process's walk.
+    ///
+    /// Each owner the in-process walk confirmed adds its item when this walk found no items for it.
+    /// The selection is the same, so an owner with several entries, or whose entry an item covers, adds nothing.
+    static func confirmedItems(confirmed: Set<pid_t>, read: [Entry], pass: Pass) -> [RawItem] {
+        let silent = confirmed.subtracting(pass.axItems.map(\.ownerPID))
+        guard !silent.isEmpty else { return [] }
+        let selection = silentDrawnOwners(
+            entries: read, answeredEmpty: silent, excluded: pass.excluded, apps: pass.apps, axItems: pass.axItems
+        )
+        let band = band(of: pass.axItems)
+        return selection.owners.sorted { $0.key < $1.key }.compactMap { owner, entry in
+            item(for: owner, entry: entry, pass: pass, band: band)
+        }
+    }
+
+    /// The item an owner's drawn entry stands for, sized to the band this pass's items sit in.
+    private static func item(for owner: pid_t, entry: Entry, pass: Pass, band: Band?) -> RawItem? {
+        guard let app = pass.apps[owner] else { return nil }
+        return rawItem(ownerPID: owner, app: app, frame: normalizedFrame(entry: entry.frame, band: band, ceiling: pass.ceiling))
     }
 }
 
@@ -228,6 +248,13 @@ nonisolated final class DrawnOnlyOwnerLedger: Sendable {
     /// The owners being watched, confirmed or not.
     var owners: Set<pid_t> {
         state.withLock { Set($0.silentSince.keys) }
+    }
+
+    /// The owners silent for at least the confirmation delay as of now.
+    func confirmedOwners(now: ContinuousClock.Instant = .now) -> Set<pid_t> {
+        state.withLock { state in
+            Set(state.silentSince.filter { now - $0.value >= Self.confirmationDelay }.keys)
+        }
     }
 
     /// Records one pass and returns the owners silent for at least the confirmation delay.
@@ -301,12 +328,7 @@ nonisolated final class DrawnOnlyInventory: Sendable {
             diagnostics.note(drawn: read, answeredEmpty: answeredEmpty, apps: apps)
         }
         guard !pending.isEmpty else { return [:] }
-        let pass = DrawnOnlyItems.Pass(
-            apps: apps.mapValues { DrawnOnlyItems.App(bundleID: $0.bundleIdentifier, localizedName: $0.localizedName) },
-            excluded: excluded.union([getpid()]),
-            axItems: axItems,
-            ceiling: MenuBarItemAXProvider.maxItemHeight(menuBarHeight: NSScreen.tallestCachedMenuBarHeight)
-        )
+        let pass = pass(apps: apps, excluded: excluded, axItems: axItems)
         let resolution = DrawnOnlyItems.resolve(pending: pending, read: read, pass: pass, ledger: ledger)
         let name = { (pid: pid_t) in pass.apps[pid]?.bundleID ?? "(pid \(pid))" }
         for owner in resolution.newlyConfirmed.sorted() {
@@ -316,5 +338,35 @@ nonisolated final class DrawnOnlyInventory: Sendable {
             diagLog.info("menuBarItems: \(name(owner)) has more than one drawn entry but lists no items of its own; not showing it")
         }
         return resolution.answers
+    }
+
+    /// Whether any owner is confirmed drawn-only, so a walk can skip reading the bar when none is.
+    var hasConfirmedOwners: Bool {
+        !ledger.confirmedOwners().isEmpty
+    }
+
+    /// The items for confirmed owners that a walk without empty answers found nothing for. See DrawnOnlyItems.confirmedItems.
+    func confirmedItems(
+        read: [DrawnOnlyItems.Entry]?,
+        apps: [pid_t: NSRunningApplication],
+        excluded: Set<pid_t>,
+        axItems: [DrawnOnlyItems.RawItem]
+    ) -> [DrawnOnlyItems.RawItem] {
+        let confirmed = ledger.confirmedOwners()
+        guard !confirmed.isEmpty, let read else { return [] }
+        return DrawnOnlyItems.confirmedItems(confirmed: confirmed, read: read, pass: pass(apps: apps, excluded: excluded, axItems: axItems))
+    }
+
+    private func pass(
+        apps: [pid_t: NSRunningApplication],
+        excluded: Set<pid_t>,
+        axItems: [DrawnOnlyItems.RawItem]
+    ) -> DrawnOnlyItems.Pass {
+        DrawnOnlyItems.Pass(
+            apps: apps.mapValues { DrawnOnlyItems.App(bundleID: $0.bundleIdentifier, localizedName: $0.localizedName) },
+            excluded: excluded.union([getpid()]),
+            axItems: axItems,
+            ceiling: MenuBarItemAXProvider.maxItemHeight(menuBarHeight: NSScreen.tallestCachedMenuBarHeight)
+        )
     }
 }
