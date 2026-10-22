@@ -263,6 +263,37 @@ struct DrawnOnlyItemsTests {
         #expect(resolution.answers == [silentPID: .record([])])
         #expect(resolution.newlySkipped == [silentPID])
     }
+
+    // MARK: Walk
+
+    @Test
+    func `the walk waits on drawn owners and on owners the ledger watches`() {
+        let inventory = DrawnOnlyInventory()
+        #expect(inventory.candidates(drawn: nil).isEmpty)
+        #expect(inventory.candidates(drawn: [entry(silentPID, x: 1200), entry(8, x: 900)]) == [silentPID, 8])
+    }
+
+    @Test
+    func `the walk keeps prior answers when the drawn read is mid-change`() {
+        let inventory = DrawnOnlyInventory()
+        let answers = inventory.answers(pending: [silentPID], answeredEmpty: [silentPID], read: nil, apps: [:], excluded: [], axItems: [])
+        #expect(answers == [silentPID: .keepPrior])
+    }
+
+    @Test
+    func `the walk records an empty answer for an owner that is not running`() {
+        let inventory = DrawnOnlyInventory()
+        let answers = inventory.answers(
+            pending: [silentPID], answeredEmpty: [silentPID], read: [entry(silentPID, x: 1200)], apps: [:], excluded: [], axItems: []
+        )
+        #expect(answers == [silentPID: .record([])])
+    }
+
+    @Test
+    func `the walk has nothing to record when no owner waited`() {
+        let inventory = DrawnOnlyInventory()
+        #expect(inventory.answers(pending: [], answeredEmpty: [], read: [entry(silentPID, x: 1200)], apps: [:], excluded: [], axItems: []).isEmpty)
+    }
 }
 
 private extension MenuBarItemAXProvider.RawItem {

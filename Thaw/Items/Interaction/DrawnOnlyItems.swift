@@ -5,7 +5,7 @@
 //  Copyright (Thaw) © 2026 Toni Förster
 //  Licensed under the GNU GPLv3
 
-import CoreGraphics
+import Cocoa
 import MenuBarModel
 import Synchronization
 import ThawAXCore
@@ -265,5 +265,56 @@ nonisolated final class DrawnOnlyOwnerLedger: Sendable {
             state.skipped.formUnion(fresh)
             return fresh
         }
+    }
+}
+
+/// The walk's drawn-only fallback: which owners wait for the drawn read, and what each is recorded as.
+/// Holds the ledger and the diagnostics, so the walk only reads the bar and records the answers.
+nonisolated final class DrawnOnlyInventory: Sendable {
+    private let diagLog = DiagLog(category: "MenuBarItemAXProvider")
+    private let ledger = DrawnOnlyOwnerLedger()
+    private let diagnostics = DrawnSilentOwnerDiagnostics()
+
+    /// Owners whose empty answer waits for the drawn read: those drawn, and those the ledger watches.
+    func candidates(drawn: [DrawnOnlyItems.Entry]?) -> Set<pid_t> {
+        ledger.owners.union(drawn?.map(\.ownerPID) ?? [])
+    }
+
+    /// Settles the waiting owners against the drawn read, and hands the read to the diagnostics.
+    ///
+    /// - Parameters:
+    ///   - pending: Owners that answered empty and waited for the read.
+    ///   - answeredEmpty: Every owner that answered empty this pass, for the diagnostics.
+    ///   - read: A settled read of MenuBarAgent's window, or nil when there was none or it was mid-change.
+    ///   - apps: The running apps by pid.
+    ///   - excluded: MenuBarAgent's pid and the control pids.
+    ///   - axItems: The items the AX walk read this pass.
+    func answers(
+        pending: Set<pid_t>,
+        answeredEmpty: Set<pid_t>,
+        read: [DrawnOnlyItems.Entry]?,
+        apps: [pid_t: NSRunningApplication],
+        excluded: Set<pid_t>,
+        axItems: [DrawnOnlyItems.RawItem]
+    ) -> [pid_t: DrawnOnlyItems.Answer] {
+        if let read {
+            diagnostics.note(drawn: read, answeredEmpty: answeredEmpty, apps: apps)
+        }
+        guard !pending.isEmpty else { return [:] }
+        let pass = DrawnOnlyItems.Pass(
+            apps: apps.mapValues { DrawnOnlyItems.App(bundleID: $0.bundleIdentifier, localizedName: $0.localizedName) },
+            excluded: excluded.union([getpid()]),
+            axItems: axItems,
+            ceiling: MenuBarItemAXProvider.maxItemHeight(menuBarHeight: NSScreen.tallestCachedMenuBarHeight)
+        )
+        let resolution = DrawnOnlyItems.resolve(pending: pending, read: read, pass: pass, ledger: ledger)
+        let name = { (pid: pid_t) in pass.apps[pid]?.bundleID ?? "(pid \(pid))" }
+        for owner in resolution.newlyConfirmed.sorted() {
+            diagLog.info("menuBarItems: \(name(owner)) is drawn but lists no items of its own; showing its icon from MenuBarAgent's window")
+        }
+        for owner in resolution.newlySkipped.sorted() {
+            diagLog.info("menuBarItems: \(name(owner)) has more than one drawn entry but lists no items of its own; not showing it")
+        }
+        return resolution.answers
     }
 }

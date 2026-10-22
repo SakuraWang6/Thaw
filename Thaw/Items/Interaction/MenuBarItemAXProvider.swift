@@ -260,6 +260,9 @@ nonisolated enum MenuBarItemAXProvider {
         var appsWithExtrasBar = 0
         // Owners that answered this pass with no items, so a drawn one can be told apart.
         var answeredEmpty = Set<pid_t>()
+        let drawnOnlyCandidates = drawnOnly.candidates(
+            drawn: drawnBar.reading(since: walkStart - drawnReadAge)?.entries
+        ).subtracting(controlPIDs)
         defer {
             let elapsed = ContinuousClock.now - walkStart
             diagLog.info(
@@ -387,13 +390,22 @@ nonisolated enum MenuBarItemAXProvider {
                 slowResponders.withLock { $0.answered(ownerPID) }
                 if result.isEmpty {
                     answeredEmpty.insert(ownerPID)
+                    // Waits for the drawn read after the loop. See DrawnOnlyItems.
+                    guard !drawnOnlyCandidates.contains(ownerPID) else { continue }
                 } else {
                     appsWithExtrasBar += 1
                 }
                 state.record(result, owner: ownerPID, generation: pass.generation)
             }
         }
-        noteDrawnSilentOwners(answeredEmpty.subtracting(controlPIDs), walkStart: walkStart, apps: appsByPID)
+        // A drawn read taken mid-change keeps an owner's last answer, so the pass is incomplete.
+        truncated = recordDrawnOnlyOwners(
+            pending: answeredEmpty.intersection(drawnOnlyCandidates),
+            answeredEmpty: answeredEmpty.subtracting(controlPIDs),
+            context: (walkStart, appsByPID, controlPIDs),
+            into: &state,
+            generation: pass.generation
+        ) || truncated
 
         let items = assemble(state.observations)
         let freshItems = assemble(state.freshObservations(generation: pass.generation))
@@ -415,12 +427,35 @@ nonisolated enum MenuBarItemAXProvider {
         ), state)
     }
 
-    /// Hands the owners that answered empty to the diagnostics when the walk's plan read the bar.
-    private static func noteDrawnSilentOwners(
-        _ answeredEmpty: Set<pid_t>, walkStart: ContinuousClock.Instant, apps: [pid_t: NSRunningApplication]
-    ) {
-        guard let drawn = drawnBar.reading(since: walkStart - .seconds(2))?.entries else { return }
-        drawnSilentOwners.note(drawn: drawn, answeredEmpty: answeredEmpty, apps: apps)
+    /// How old a drawn read may be when the walk starts and still count as this pass's.
+    private static let drawnReadAge = Duration.seconds(2)
+
+    /// Records the owners whose empty answer waited on the drawn read, reusing the plan's read when
+    /// it is recent. Subprocess walks do not take this path yet.
+    ///
+    /// - Returns: Whether a read taken mid-change left an owner's last answer in place.
+    private static func recordDrawnOnlyOwners(
+        pending: Set<pid_t>,
+        answeredEmpty: Set<pid_t>,
+        context: (walkStart: ContinuousClock.Instant, apps: [pid_t: NSRunningApplication], excluded: Set<pid_t>),
+        into state: inout MenuBarScanState<RawItem>,
+        generation: UInt64
+    ) -> Bool {
+        let recent = drawnBar.reading(since: context.walkStart - drawnReadAge)
+        let answers = drawnOnly.answers(
+            pending: pending,
+            answeredEmpty: answeredEmpty,
+            read: recent.map(\.entries) ?? (pending.isEmpty ? nil : drawnBar.read()),
+            apps: context.apps,
+            excluded: context.excluded,
+            axItems: state.freshObservations(generation: generation)
+        )
+        for (owner, answer) in answers {
+            if case let .record(items) = answer {
+                state.record(items, owner: owner, generation: generation)
+            }
+        }
+        return answers.values.contains(.keepPrior)
     }
 
     /// Awaits task's value, or nil if the waiter is cancelled first.
@@ -741,7 +776,8 @@ nonisolated enum MenuBarItemAXProvider {
     /// The read of MenuBarAgent's window each plan is made from.
     private static let drawnBar = DrawnBarLedger()
 
-    private static let drawnSilentOwners = DrawnSilentOwnerDiagnostics()
+    /// See DrawnOnlyItems.
+    private static let drawnOnly = DrawnOnlyInventory()
 
     /// See nativeOverflowControlBounds(on:).
     @concurrent
