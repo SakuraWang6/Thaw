@@ -116,7 +116,7 @@ extension MenuBarItemManager {
         // is rebased onto the bar under the cursor before the warp below.
         let resolvedBounds = try await getCurrentBounds(for: item)
         // The re-read can still land on a parked or phantom frame mid-reflow.
-        if let rejection = ClickTargetCheck.rejection(for: resolvedBounds) {
+        if let rejection = ClickTargetCheck.rejection(for: resolvedBounds, barWidth: ClickTargetCheck.barWidth(for: resolvedBounds)) {
             MenuBarItemManager.diagLog.warning("postClickEvents: \(item.logString) frame \(resolvedBounds) is \(rejection.rawValue); not clicking")
             throw EventError.missingItemBounds(item)
         }
