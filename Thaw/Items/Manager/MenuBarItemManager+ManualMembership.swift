@@ -81,13 +81,15 @@ extension MenuBarItemManager {
         let weight = weights.weight(of:)
         let found = ObservedMembership.DividerWeights(among: items, dividers: lastKnownControlItems, weight: weight)
         let experimentalSystemItemHiding = configuration.enableExperimentalSystemItemHiding
-        let candidates = items.compactMap { item -> ObservedMembership.Candidate? in
-            guard !item.isControlItem, item.tag.canBeHidden,
-                  item.isMovable(experimentalSystemItemHiding: experimentalSystemItemHiding),
-                  let itemWeight = weight(item), !weights.isParked(itemWeight)
-            else { return nil }
-            return .init(item: item, weight: itemWeight, authored: controller.authoredSection(for: item.uniqueIdentifier))
-        }
+        let candidates = ObservedMembership.candidates(
+            among: items,
+            weight: { weight($0).flatMap { weights.isParked($0) ? nil : $0 } },
+            assignment: controller.sectionAssignment,
+            isEligible: {
+                !$0.isControlItem && $0.tag.canBeHidden
+                    && $0.isMovable(experimentalSystemItemHiding: experimentalSystemItemHiding)
+            }
+        )
         return (found, found.reading(alwaysHiddenEnabled: configuration.isAlwaysHiddenSectionEnabled), candidates)
     }
 

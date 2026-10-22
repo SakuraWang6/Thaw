@@ -64,7 +64,7 @@ struct SectionReadingPropertyTests {
         }
     }
 
-    @Test("A launch read keeps every section set in Layout, and only places items that have none", arguments: 0 ..< 200)
+    @Test("A launch read keeps every section set in Layout, and only places items that have none and sit outside Visible", arguments: 0 ..< 200)
     func launchReadKeepsLayoutSections(seed: Int) throws {
         let random = GKMersenneTwisterRandomSource(seed: UInt64(seed))
         let dividers = try #require(ObservedMembership.Dividers(hidden: 300, alwaysHidden: 1000, visibleControl: 100))
@@ -81,7 +81,9 @@ struct SectionReadingPropertyTests {
             let candidate = try #require(candidates.first { $0.item.windowID == item.windowID })
             #expect(candidate.authored == nil, "seed \(seed): a section set in Layout was overwritten")
         }
-        #expect(moved.count == candidates.filter { $0.authored == nil }.count, "seed \(seed): every item without a section gets one")
+        // An item without a section shows in Visible, so only one that reads elsewhere needs placing.
+        let unplaced = candidates.filter { $0.authored == nil && dividers.section(for: $0.weight) != .visible }
+        #expect(moved.count == unplaced.count, "seed \(seed): every item without a section that sits outside Visible gets one")
     }
 
     @Test("Without keeping Layout's sections, a read still moves placed items to where they sit")
@@ -130,7 +132,8 @@ struct SectionReadingPropertyTests {
         let moved = ObservedMembership.moves(for: after, dividers: dividers, since: baseline).flatMap(\.items)
         #expect(moved.allSatisfy { $0.windowID == before[dragged].item.windowID }, "seed \(seed): an untouched item moved")
         let crossed = dividers.section(for: before[dragged].weight) != dividers.section(for: after[dragged].weight)
-        let differsFromLayout = dividers.section(for: after[dragged].weight) != after[dragged].authored
+        // An item without a section shows in Visible.
+        let differsFromLayout = dividers.section(for: after[dragged].weight) != (after[dragged].authored ?? .visible)
         #expect(moved.count == (crossed && differsFromLayout ? 1 : 0), "seed \(seed)")
     }
 

@@ -105,7 +105,28 @@ nonisolated enum ObservedMembership {
     struct Candidate {
         let item: MenuBarItem
         let weight: Int
+        /// The section the user put the item in, or nil when they never placed it, which shows it in Visible.
         let authored: MenuBarSectionName?
+    }
+
+    /// The items a reading may move, each with the section the user explicitly put it in.
+    ///
+    /// - Parameters:
+    ///   - weight: The item's stored weight, or nil when it has none or is parked.
+    ///   - assignment: The explicit assignments, keyed by canonical identifier. An item
+    ///     missing from it has no section yet, even though it shows in Visible.
+    ///   - isEligible: Whether the item may move at all.
+    static func candidates(
+        among items: [MenuBarItem],
+        weight: (MenuBarItem) -> Int?,
+        assignment: [String: MenuBarSectionName],
+        isEligible: (MenuBarItem) -> Bool
+    ) -> [Candidate] {
+        items.compactMap { item in
+            guard isEligible(item), let itemWeight = weight(item) else { return nil }
+            let authored = assignment[MenuBarItemTag.canonicalPersistentIdentifier(item.uniqueIdentifier)]
+            return Candidate(item: item, weight: itemWeight, authored: authored)
+        }
     }
 
     /// Each item's stored weight, and the section it read as, when a ⌘-drag started.
@@ -157,7 +178,7 @@ nonisolated enum ObservedMembership {
                 return nil
             }
             let observed = dividers.section(for: candidate.weight)
-            return observed == candidate.authored ? nil : (observed, candidate.item)
+            return observed == (candidate.authored ?? .visible) ? nil : (observed, candidate.item)
         }
         return Dictionary(grouping: moving, by: \.section)
             .sorted { $0.key.rawValue < $1.key.rawValue }
