@@ -16,6 +16,7 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 - **About links to Floe,** the launcher from the same team. By @diazdesandi.
 - **Experimental: four more glass finishes.** Appearance offers Invert, Edge, Sheer and Dim next to Regular and Clear. Edge, Sheer and Dim follow the shade macOS gives your menu bar icons, so dark icons sit on light glass and light icons on dark glass. A finish macOS doesn't support falls back to the standard glass. By @diazdesandi.
 - **More section divider styles.** Besides None and Chevron, Settings > Layout > Section divider style offers Line, Dot, Slash and Custom, which draws an image you choose, like a custom Thaw icon. By @diazdesandi.
+- **Thaw offers to show apps an older version hid.** Earlier betas could leave an app switched off in System Settings > Menu Bar with no record, which looks the same as an app you switched off yourself. Once, when Settings opens, Thaw lists those apps with nothing selected, and shows only the ones you pick. By @diazdesandi.
 
 ### Changed
 
@@ -69,6 +70,8 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 - **A ⌘-drag in Manual arrangement only changes the sections of the icons it moves.** After a drag, Thaw read every icon's stored position, and in Manual those are often out of date, so icons you didn't touch could change sections. Switching to Manual keeps the sections you set in Layout too. By @diazdesandi.
 - **Apps whose menu bar icon macOS lists but doesn't describe show up in Layout.** Some apps, such as ZeroTier, draw an icon that Thaw's scan couldn't see, so it never appeared in Layout or the Thaw Bar. Thaw now picks up an app's icon from the menu bar itself when the app shows one icon and describes none. By @diazdesandi.
 - **Only one copy of Thaw runs at a time.** Opening a second copy, such as a test build next to the release, used to start a second menu bar manager fighting the first. Thaw asks which copy to keep. By @diazdesandi.
+- **Apps you switched off in System Settings > Menu Bar stay off when Thaw restarts.** If such an app was also in Thaw's Hidden section, restarting Thaw switched it back on, with either hiding method. Thaw now only switches on apps it switched off itself, and if it can't read its record of them, it asks before setting that record aside instead of guessing. Reported by @Snowman833 in [#1367](https://github.com/thaw-app/Thaw/issues/1367). Fixed by @diazdesandi.
+- **One app is no longer listed many times in Hidden or Always Hidden.** When an app changed an icon's name, Thaw kept the old name as one more icon of that app. Reported by @felixkaiser in [#1367](https://github.com/thaw-app/Thaw/issues/1367). Fixed by @diazdesandi.
 
 ## [3.0.0-beta.3] - 2026-10-19
 
