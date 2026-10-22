@@ -666,7 +666,7 @@ extension MenuBarItemManager {
             scheduleCoalescedCacheRerun()
             return
         }
-        onScreenItemSnapshot.update(inventory.freshItems.filter(\.isOnScreen))
+        onScreenItemSnapshot.update(inventory.freshItems.filter(\.isOnScreen), fromCompleteWalk: inventory.completed)
 
         MenuBarItemManager.diagLog.debug("cacheItemsRegardless: getMenuBarItems returned \(items.count) items")
 
