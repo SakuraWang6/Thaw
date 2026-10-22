@@ -11,6 +11,11 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 
 **macOS 27 only · Build 117**
 
+> [!IMPORTANT]
+> **On macOS 27.0.1, don't ⌘-drag the microphone or screen recording indicator while it's showing.**
+>
+> macOS's own menu bar process gets stuck redrawing it and restarts a minute later, with or without Thaw running, and the menu bar can come back in a different order. macOS 27.2 doesn't have this problem, so updating macOS is the fix. Reported by Keylag.
+
 ### New
 
 - **About links to Floe,** the launcher from the same team. By @diazdesandi.
@@ -82,6 +87,12 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 - **Settings no longer blinks when a page moves to the app.** With Settings running in its own process, opening a page such as Layout closed the window about a second before the app's own Settings window appeared. Now the window stays until the new one is in front. By @diazdesandi.
 - **Always show hidden items follows the menu bar to another display right away.** When the active menu bar moved to another display, hidden items could take up to a second to show there. By @diazdesandi.
 - **Thaw changes nothing when it can't read its record of the apps it hid.** Layout locks the hiding method, says why and offers to set the record aside, then starts Native hiding again once you confirm. Restore Missing Items opens in that case too and lists every app switched off in System Settings, so you pick which ones to show. By @diazdesandi.
+
+### Known issues
+
+- **On macOS 27.0.1, ⌘-dragging the microphone or screen recording indicator makes macOS's menu bar process restart** about a minute later, with or without Thaw. Afterwards some icons can come back out of order; dragging them into place on the menu bar fixes it. macOS 27.2 doesn't have this problem. Reported by Keylag.
+- **With about 240 apps running, Thaw can't read the whole menu bar in time,** so icons can go missing from Layout for a moment or come back in a different order. Reported by @joaofrgomes in [#1367](https://github.com/thaw-app/Thaw/issues/1367).
+- **Zoom and some other apps can't be hidden with the Native hiding method,** because macOS's list in System Settings > Menu Bar has no entry for them. They stay on the menu bar.
 
 ## [3.0.0-beta.3] - 2026-10-19
 
