@@ -170,7 +170,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         terminationTimeoutTask?.cancel()
         isPreparingForTermination = true
         hasRepliedToTerminationRequest = false
-        appState.diagLog.info("Application asked to terminate - restoring blocked items asynchronously")
+        appState.diagLog.info("Application asked to terminate \(QuitRequestSource.current()) - restoring blocked items asynchronously")
         appState.appRunningTriggers.stop()
 
         Task { @MainActor in
