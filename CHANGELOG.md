@@ -68,6 +68,7 @@ and the Sparkle appcast, unless overridden with the `release_notes` input.
 - **With Native hiding, Layout says which hidden icons stay in the menu bar.** macOS shows or hides an app as a whole, and with Native hiding an app stays visible while any of its icons is in Visible. Layout marks its Hidden and Always Hidden icons as shown with the app's other items, offers to move them together, and no longer dims Visible icons that are on the bar. Reported by @felixkaiser in [#1367](https://github.com/thaw-app/Thaw/issues/1367). Fixed by @diazdesandi.
 - **A ⌘-drag in Manual arrangement only changes the sections of the icons it moves.** After a drag, Thaw read every icon's stored position, and in Manual those are often out of date, so icons you didn't touch could change sections. Switching to Manual keeps the sections you set in Layout too. By @diazdesandi.
 - **Apps whose menu bar icon macOS lists but doesn't describe show up in Layout.** Some apps, such as ZeroTier, draw an icon that Thaw's scan couldn't see, so it never appeared in Layout or the Thaw Bar. Thaw now picks up an app's icon from the menu bar itself when the app shows one icon and describes none. By @diazdesandi.
+- **Only one copy of Thaw runs at a time.** Opening a second copy, such as a test build next to the release, used to start a second menu bar manager fighting the first. Thaw asks which copy to keep. By @diazdesandi.
 
 ## [3.0.0-beta.3] - 2026-10-19
 
