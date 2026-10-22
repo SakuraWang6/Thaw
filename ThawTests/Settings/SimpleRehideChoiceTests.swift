@@ -6,6 +6,7 @@
 //  Licensed under the GNU GPLv3
 
 import Foundation
+import SwiftUI
 import Testing
 @testable import Thaw
 
@@ -41,8 +42,19 @@ struct SimpleRehideChoiceTests {
         #expect(SimpleRehideChoice.whenClickingElsewhere.title == "When I click elsewhere")
         #expect(SimpleRehideChoice.whenSwitchingApps.title == "When I switch apps")
         #expect(SimpleRehideChoice.after(60).title == "After 1 minute")
-        let seconds = 15
-        #expect(SimpleRehideChoice.after(15).title == "After \(seconds) seconds")
-        #expect(SimpleRehideChoice.after(15).title != SimpleRehideChoice.after(60).title)
+        // Equality of interpolated keys compares their arguments, which SwiftUI doesn't do the same
+        // way on every release, so the format and the number are read out and checked on their own.
+        let delay = Self.parts(of: SimpleRehideChoice.after(15).title)
+        #expect(delay.format == "After %lld seconds")
+        #expect(delay.arguments.contains("15"))
+        #expect(Self.parts(of: SimpleRehideChoice.after(60).title).format == "After 1 minute")
+    }
+
+    /// The key's format string and a description of its arguments.
+    private static func parts(of key: LocalizedStringKey) -> (format: String?, arguments: String) {
+        let children = Mirror(reflecting: key).children
+        let format = children.first { $0.label == "key" }?.value as? String
+        let arguments = children.first { $0.label == "arguments" }.map { String(describing: $0.value) } ?? ""
+        return (format, arguments)
     }
 }
