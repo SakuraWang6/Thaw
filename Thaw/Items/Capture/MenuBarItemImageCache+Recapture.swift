@@ -629,6 +629,9 @@ extension MenuBarItemImageCache {
         var uncover: @MainActor () -> Void = {
             // Nothing to take down when no cover was raised.
         }
+        /// Asked right before each batch's reveal, since the hiding method can
+        /// change while a pass is suspended between batches.
+        var mayReveal: @MainActor () -> Bool = { true }
     }
 
     /// Reveals concealed items a few at a time and captures each group from
@@ -696,7 +699,8 @@ extension MenuBarItemImageCache {
                 reader: LiveMenuBarCaptureReader(),
                 // Captures never see Thaw's own windows, so the cover hides the reveal from the user only.
                 cover: { appState.menuBarManager.revealCover.show() },
-                uncover: { appState.menuBarManager.revealCover.hide() }
+                uncover: { appState.menuBarManager.revealCover.hide() },
+                mayReveal: { ConcealedPrewarmGate.mayReveal(for: appState) }
             )
         )
     }
@@ -721,7 +725,8 @@ extension MenuBarItemImageCache {
         for batch in batches {
             // A reveal during a move reflows the bar under the drag.
             await moveActivity?.waitUntilIdle()
-            guard !Task.isCancelled, !skipCaptureWhileScreenLocked("revealing capture batch") else { return }
+            guard !Task.isCancelled, !skipCaptureWhileScreenLocked("revealing capture batch"),
+                  sources.mayReveal() else { return }
 
             sources.cover()
             for item in batch {

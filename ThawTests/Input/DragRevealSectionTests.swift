@@ -5,6 +5,7 @@
 //  Copyright (Thaw) © 2026 Toni Förster
 //  Licensed under the GNU GPLv3
 
+import AppKit
 import CoreGraphics
 import MenuBarModel
 import Testing
@@ -73,5 +74,44 @@ struct DragRevealDecisionTests {
     @Test func findsNoItemWhereNothingIsCached() {
         let appState = AppState()
         #expect(appState.hidEventManager.managedItem(appState: appState, at: CGPoint(x: 10, y: 5)) == nil)
+    }
+
+    /// A press without ⌘ is not the start of a move, so it forgets any item
+    /// an earlier press grabbed.
+    @MainActor
+    @Test func aPlainPressForgetsTheGrabbedItem() throws {
+        let appState = AppState()
+        let manager = appState.hidEventManager
+        manager.pressedItemTag = .screenCaptureUI
+        let event = try #require(NSEvent.mouseEvent(
+            with: .leftMouseDown, location: .zero, modifierFlags: [], timestamp: 0,
+            windowNumber: 0, context: nil, eventNumber: 0, clickCount: 1, pressure: 1
+        ))
+        manager.notePressForItemDrag(event, appState: appState)
+        #expect(manager.pressedItemTag == nil)
+    }
+
+    /// With nothing cached under the pointer, a ⌘-press grabs no item.
+    @MainActor
+    @Test func aCommandPressOverNothingGrabsNothing() throws {
+        let appState = AppState()
+        let manager = appState.hidEventManager
+        let event = try #require(NSEvent.mouseEvent(
+            with: .leftMouseDown, location: .zero, modifierFlags: .command, timestamp: 0,
+            windowNumber: 0, context: nil, eventNumber: 0, clickCount: 1, pressure: 1
+        ))
+        manager.notePressForItemDrag(event, appState: appState)
+        #expect(manager.pressedItemTag == nil)
+    }
+
+    /// A ⌘-click that never became a drag must not leave its item behind for
+    /// the next drag.
+    @MainActor
+    @Test func aReleaseWithoutADragForgetsTheGrabbedItem() {
+        let appState = AppState()
+        let manager = appState.hidEventManager
+        manager.pressedItemTag = .screenCaptureUI
+        manager.handleMenuBarItemDragStop()
+        #expect(manager.pressedItemTag == nil)
     }
 }

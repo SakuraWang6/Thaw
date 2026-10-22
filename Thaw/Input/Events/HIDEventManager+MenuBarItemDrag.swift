@@ -16,6 +16,8 @@ extension HIDEventManager {
     /// Ends an item drag, and arranges for the cache to catch up with wherever
     /// the user dropped things.
     func handleMenuBarItemDragStop() {
+        // Every release forgets the grabbed item, also when no drag started.
+        pressedItemTag = nil
         guard isDraggingMenuBarItem else {
             return
         }
@@ -34,6 +36,17 @@ extension HIDEventManager {
     }
 
     // MARK: Handle Menu Bar Item Drag Start
+
+    /// Remembers the item a command-press landed on. By the first drag event
+    /// the pointer may already be over a neighbor, so the drag is judged by
+    /// what was grabbed rather than by what lies under the pointer. The press
+    /// position comes from the event, since a monitor can run after the
+    /// pointer has moved on.
+    func notePressForItemDrag(_ event: NSEvent, appState: AppState) {
+        pressedItemTag = event.modifierFlags.contains(.command)
+            ? managedItem(appState: appState, at: event.cgEvent?.location ?? MouseHelpers.locationCoreGraphics)?.tag
+            : nil
+    }
 
     /// Notices the start of an item drag.
     ///
@@ -60,7 +73,7 @@ extension HIDEventManager {
         guard Self.dragRevealsSections(
             enabled: configuration.showAllSectionsOnUserDrag,
             nativeHidingActive: appState.menuBarManager.nativeAppHidingExperiment.isActive,
-            draggedTag: managedItem(appState: appState, at: MouseHelpers.locationCoreGraphics)?.tag
+            draggedTag: pressedItemTag
         ) else {
             return
         }

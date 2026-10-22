@@ -29,6 +29,9 @@ final class HIDEventManager {
     /// Whether a command-drag of a menu bar item is in progress.
     var isDraggingMenuBarItem = false
 
+    /// The cached item under the last command-press, which decides its drag.
+    @ObservationIgnored var pressedItemTag: MenuBarItemTag?
+
     /// The app-wide state this manager reads settings and sections from.
     /// Weak, because the app state owns the manager.
     weak var appState: AppState?
@@ -283,6 +286,7 @@ final class HIDEventManager {
         // not fire on this click's release.
         pendingControlItemContextMenu = nil
         recordControlItemPressModifiers(event, appState: appState)
+        notePressForItemDrag(event, appState: appState)
         let clickLocation = NSEvent.mouseLocation
         if
             event.modifierFlags.contains(.control),
