@@ -33,4 +33,21 @@ struct BackdropRefreshCadenceTests {
         #expect(before != moved)
         #expect(before == MenuBarBackdrop.stripKey(rect: rect, windows: [(7, CGRect(x: 0, y: 0, width: 400, height: 300)), (3, .zero)]))
     }
+
+    @Test("Only on-screen windows below the ceiling that touch the rect are composited")
+    func windowsBelowTheBar() async {
+        let everywhere = CGRect(x: -100_000, y: -100_000, width: 200_000, height: 200_000)
+        let below = await MenuBarBackdrop.windowsBelowMenuBar(intersecting: everywhere)
+        #expect(below.allSatisfy { $0.bounds.intersects(everywhere) })
+        #expect(Set(below.map(\.id)).count == below.count)
+        #expect(await MenuBarBackdrop.windowsBelowMenuBar(intersecting: everywhere, belowLayer: Int.min).isEmpty)
+        #expect(await MenuBarBackdrop.windowsBelowMenuBar(intersecting: CGRect(x: -900_000, y: -900_000, width: 1, height: 1)).isEmpty)
+    }
+
+    @Test("A one-off read under no window composites nothing")
+    @MainActor
+    func captureNothing() async {
+        let image = await MenuBarBackdrop().capture(CGRect(x: 0, y: 0, width: 10, height: 10), belowLayer: Int.min)
+        #expect(image == nil)
+    }
 }

@@ -49,15 +49,20 @@ enum MemoryReclaimer {
             // The continuous clock keeps counting while the Mac sleeps.
             for await _ in AsyncTimerSequence(interval: footprintLogInterval, clock: .continuous) {
                 guard let footprint = physicalFootprint() else { continue }
-                let megabytes = footprint / 1_048_576
-                if shouldWarn(megabytes: megabytes, alreadyWarned: warned) {
-                    warned = true
-                    diagLog.warning("footprint \(megabytes) MB, above \(footprintWarningMegabytes) MB")
-                } else {
-                    diagLog.info("footprint \(megabytes) MB")
-                }
+                warned = logFootprint(megabytes: footprint / 1_048_576, alreadyWarned: warned)
             }
         }
+    }
+
+    /// Logs one footprint sample, as a warning the first time it passes the
+    /// line. Returns whether the warning has been given.
+    static func logFootprint(megabytes: UInt64, alreadyWarned: Bool) -> Bool {
+        guard shouldWarn(megabytes: megabytes, alreadyWarned: alreadyWarned) else {
+            diagLog.info("footprint \(megabytes) MB")
+            return alreadyWarned
+        }
+        diagLog.warning("footprint \(megabytes) MB, above \(footprintWarningMegabytes) MB")
+        return true
     }
 
     /// Warns the first time the footprint passes the line, not on every sample after.
