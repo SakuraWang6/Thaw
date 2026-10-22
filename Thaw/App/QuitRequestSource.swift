@@ -10,8 +10,8 @@ import AppKit
 /// Says who asked Thaw to quit, for the log.
 ///
 /// Another app, a script or loginwindow asks through a quit Apple event,
-/// which carries the sender's process and, for a logout, restart or shut
-/// down, a reason. A quit from Thaw's own menu or ⌘Q has no such event.
+/// which carries the sender's process and, for a logout, restart or
+/// shutdown, a reason. A quit from Thaw's own menu or ⌘Q has no such event.
 nonisolated enum QuitRequestSource {
     /// The sender of the quit event being handled now, read from the event.
     @MainActor
