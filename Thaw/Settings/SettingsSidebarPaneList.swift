@@ -61,6 +61,20 @@ enum SettingsSidebarPanes {
     static func page(moving direction: MoveCommandDirection, from current: SettingsNavigationIdentifier) -> SettingsNavigationIdentifier? {
         all.neighbor(of: current, moving: direction)
     }
+
+    /// Opens a page from the sidebar. The search is cleared first: the page
+    /// may already be selected, and a leftover search would keep the detail
+    /// column on results.
+    static func open(_ pane: SettingsNavigationIdentifier, searchModel: SearchModel, navigationState: AppNavigationState) {
+        searchModel.searchText = ""
+        SettingsSearchNavigation.selectSidebarPane(pane, navigationState: navigationState)
+    }
+
+    /// Opens the page above or below the current one, when there is one.
+    static func move(_ direction: MoveCommandDirection, searchModel: SearchModel, navigationState: AppNavigationState) {
+        guard let pane = page(moving: direction, from: navigationState.settingsNavigationIdentifier) else { return }
+        open(pane, searchModel: searchModel, navigationState: navigationState)
+    }
 }
 
 /// One row of the sidebar: a page to select, the heading over a group, or
@@ -120,7 +134,7 @@ struct SettingsSidebarPaneList: View {
                                 .frame(height: ThawSpacing.gutter)
                         case let .page(pane):
                             SettingsSidebarPageRow(pane: pane, isSelected: pane == selectedRow, showsFocus: isFocused) {
-                                select(pane)
+                                SettingsSidebarPanes.open(pane, searchModel: searchModel, navigationState: navigationState)
                             }
                             .id(pane.rawValue)
                         }
@@ -136,17 +150,8 @@ struct SettingsSidebarPaneList: View {
         }
         .scrollEdgeEffectStyle(.soft, for: .top)
         .thawKeyboardList(isFocused: $isFocused) { direction in
-            if let pane = SettingsSidebarPanes.page(moving: direction, from: navigationState.settingsNavigationIdentifier) {
-                select(pane)
-            }
+            SettingsSidebarPanes.move(direction, searchModel: searchModel, navigationState: navigationState)
         }
-    }
-
-    private func select(_ pane: SettingsNavigationIdentifier) {
-        // Clear the search first: the clicked pane may already be selected,
-        // and a leftover search would keep the detail column on results.
-        searchModel.searchText = ""
-        SettingsSearchNavigation.selectSidebarPane(pane, navigationState: navigationState)
     }
 }
 
