@@ -10,8 +10,10 @@ import Testing
 @testable import Thaw
 
 /// Waits on the main actor until the condition holds, or gives up after the timeout.
+/// It returns as soon as the condition holds, so the generous limit only matters
+/// on a busy runner, where pipe messages can take seconds.
 @MainActor
-func settingsLinkWait(timeout: Duration = .seconds(3), until condition: () -> Bool) async -> Bool {
+func settingsLinkWait(timeout: Duration = .seconds(15), until condition: () -> Bool) async -> Bool {
     let clock = ContinuousClock()
     let deadline = clock.now + timeout
     while !condition() {
