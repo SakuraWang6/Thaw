@@ -72,15 +72,27 @@ final class NativeAppHidingExperiment {
         controller.journalNeedsAttention
     }
 
-    @ObservationIgnored private let controller: NativeAppHidingController = {
+    @ObservationIgnored private let controller: NativeAppHidingController
+
+    /// Offers apps an older version may have left switched off.
+    let restoreOffer: HiddenAppsRestoreOffer
+
+    init() {
         let appListAccess = PickedFileAccess.controlCenterAppList
-        return NativeAppHidingController(environment: .init(
+        let controller = NativeAppHidingController(environment: .init(
             activateAccess: { appListAccess.activateIfNeeded() },
             requestAccess: { appListAccess.requestAccessViaOpenPanel() },
             ownsBundle: ExtraVisibilityChannel.keepsOffSystemList,
             hideOwnedBundles: ExtraVisibilityChannel.hide
         ))
-    }()
+        self.controller = controller
+        restoreOffer = HiddenAppsRestoreOffer(environment: .init(
+            findCandidates: { (try? controller.unjournaledHiddenApps()) ?? [] },
+            showApps: { try controller.showApps($0) },
+            isAnswered: { Defaults.bool(forKey: .hasAnsweredHiddenAppsRestoreOffer) },
+            markAnswered: { Defaults.set(true, forKey: .hasAnsweredHiddenAppsRestoreOffer) }
+        ))
+    }
 
     @ObservationIgnored private var observationTask: Task<Void, Never>?
     @ObservationIgnored private weak var settings: AdvancedSettings?
@@ -97,6 +109,8 @@ final class NativeAppHidingExperiment {
     func start(controller sectionController: RuntimeSectionController, settings: AdvancedSettings) {
         controller.attach(to: sectionController)
         self.settings = settings
+        // Before the first start, which takes over the apps it hides.
+        restoreOffer.captureCandidates()
         observationTask?.cancel()
         observationTask = Task { [weak self, weak settings] in
             guard let settings else { return }
@@ -119,6 +133,7 @@ final class NativeAppHidingExperiment {
     /// switched off until the user picks them in the restore offer.
     func setAsideUnreadableRecord() throws {
         try controller.discardUnreadableJournal()
+        restoreOffer.offerAfterSettingRecordAside()
         guard let settings, settings.enableNativeAppHiding, !controller.isActive else { return }
         enable(settings: settings, isLaunch: false)
     }

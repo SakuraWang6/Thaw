@@ -20261,6 +20261,9 @@
     "Keep %@ up to date?" : {
 
     },
+    "Keep Hidden" : {
+
+    },
     "Keep search" : {
       "comment" : "A toggle to keep a search query open.",
       "localizations" : {
@@ -29411,6 +29414,9 @@
     "Restore %@ settings to their defaults. Saved profiles, allowed apps, and user data are not deleted. This cannot be undone." : {
 
     },
+    "Restore apps %@ hid" : {
+
+    },
     "Restore every %@ setting to its default value." : {
 
     },
@@ -32257,6 +32263,9 @@
           }
         }
       }
+    },
+    "Show Selected" : {
+
     },
     "Show Swap Bar" : {
 
@@ -36270,6 +36279,9 @@
 
     },
     "The widget preview reads connection type from macOS locally. It does not contact a server or send network details. Monitoring runs only while the widget item is enabled in Widgets." : {
+
+    },
+    "These apps are switched off in System Settings %@ Menu Bar. An older version of %@ may have switched them off, or you may have, and %@ can't tell which. Select the ones you want back in the menu bar." : {
 
     },
     "These are sample readings." : {

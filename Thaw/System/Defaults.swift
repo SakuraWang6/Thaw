@@ -646,6 +646,12 @@ extension Defaults {
 
         case hasSeenUpdateConsent
 
+        // MARK: Native Hiding
+
+        /// The user answered the one-time offer to show apps an older
+        /// version may have left switched off in System Settings.
+        case hasAnsweredHiddenAppsRestoreOffer
+
         // MARK: Onboarding
 
         case hasSeenOnboarding
