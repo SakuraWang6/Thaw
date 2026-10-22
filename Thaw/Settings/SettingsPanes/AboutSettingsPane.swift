@@ -90,11 +90,16 @@ struct AboutSettingsPane: View {
     /// it copies the full block a bug report asks for.
     private var details: some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
+            // The spoken label goes on a plain container. Selectable text is an AppKit
+            // text view underneath, and a label set on it directly makes SwiftUI ask
+            // that view for the label it is supplying, which recursed until the stack
+            // ran out when VoiceOver or another accessibility client read About.
             Text(verbatim: "\(Constants.versionString) (\(Constants.buildString)) · \(Constants.commitString)")
                 .font(.callout)
                 .monospaced()
                 .foregroundStyle(ThawInk.supporting)
                 .textSelection(.enabled)
+                .accessibilityElement(children: .ignore)
                 .accessibilityLabel("Version \(Constants.versionString), build \(Constants.buildString), commit \(Constants.commitString)")
             Button {
                 copyVersionInfo()
@@ -130,7 +135,9 @@ struct AboutSettingsPane: View {
             }
             .help("More about \(Constants.displayName)")
             .accessibilityLabel("More about \(Constants.displayName)")
-            .background { MoreMenuAnchorView(anchor: menuAnchor) }
+            // The anchor only places the menu, so it stays out of the accessibility
+            // tree, where it could stand in for the labeled button.
+            .background { MoreMenuAnchorView(anchor: menuAnchor).accessibilityHidden(true) }
         }
         .buttonStyle(.thawGrouped)
     }
