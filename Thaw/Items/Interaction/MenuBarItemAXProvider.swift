@@ -1104,7 +1104,7 @@ nonisolated enum MenuBarItemAXProvider {
     /// A pre-tag item collected from the AX walk.
     ///
     /// Internal plain data so assemble is testable with fixtures.
-    struct RawItem {
+    struct RawItem: Equatable {
         let namespace: MenuBarItemTag.Namespace
         let identityTitle: String
         let displayTitle: String
