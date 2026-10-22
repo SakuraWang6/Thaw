@@ -151,7 +151,9 @@ enum LayoutBarItemMenu {
         appState: AppState
     ) {
         let appName = item.sourceApplication?.localizedName ?? item.displayName
-        menu.addItem(ClosureMenuItem(title: override.menuNote(appName: appName), isEnabled: false) {})
+        menu.addItem(ClosureMenuItem(title: override.menuNote(appName: appName), isEnabled: false) {
+            // A note, not a command: the item is disabled and never runs this.
+        })
         let members = appState.itemManager.appItems(for: item)
         for destination in [MenuBarSection.Name.visible, override.concealedSection] {
             let title = String(

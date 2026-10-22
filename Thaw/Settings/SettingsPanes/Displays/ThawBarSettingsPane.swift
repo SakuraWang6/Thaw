@@ -360,18 +360,14 @@ nonisolated enum ThawBarTab: CaseIterable, ThawTab {
 
     /// The tab holding a search result's section.
     init?(section: String) {
-        switch section {
-        case "Options for all displays": self = .allDisplays
-        default: return nil
-        }
+        guard section == "Options for all displays" else { return nil }
+        self = .allDisplays
     }
 
     /// The tab a search result's disclosure opens.
     init?(disclosure: AppNavigationState.SettingsDisclosure) {
-        switch disclosure {
-        case .thawBarAppWideOptions: self = .allDisplays
-        default: return nil
-        }
+        guard disclosure == .thawBarAppWideOptions else { return nil }
+        self = .allDisplays
     }
 
     var title: LocalizedStringKey {

@@ -623,8 +623,12 @@ extension MenuBarItemImageCache {
         let reader: any MenuBarCaptureReading
         /// Raised before a batch is revealed and lowered after it is concealed,
         /// so the user sees the bar as it was while the capture sees the reveal.
-        var cover: @MainActor () -> Void = {}
-        var uncover: @MainActor () -> Void = {}
+        var cover: @MainActor () -> Void = {
+            // No cover unless the caller supplies one, as in tests.
+        }
+        var uncover: @MainActor () -> Void = {
+            // Nothing to take down when no cover was raised.
+        }
     }
 
     /// Reveals concealed items a few at a time and captures each group from

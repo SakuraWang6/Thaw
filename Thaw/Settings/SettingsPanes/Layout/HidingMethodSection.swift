@@ -117,7 +117,9 @@ struct HidingMethodSection: View {
                     setAsideError = error.localizedDescription
                 }
             }
-            Button("Cancel", role: .cancel) {}
+            Button("Cancel", role: .cancel) {
+                // Closing the alert is all Cancel does; the record stays where it is.
+            }
         } message: {
             Text("\(Constants.displayName) keeps the file under a new name and starts a new record. Apps it hid before stay switched off, and you can choose which ones to show afterwards.")
         }

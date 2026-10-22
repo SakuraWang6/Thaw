@@ -251,10 +251,7 @@ nonisolated enum MenuBarGlassStyle: Int, CaseIterable, Codable, Hashable {
 
     /// How dark the finish makes what's behind it, for reading the icons' contrast.
     var darkening: Double {
-        switch self {
-        case .dim: 0.5
-        default: 0
-        }
+        self == .dim ? 0.5 : 0
     }
 
     var usesTint: Bool {

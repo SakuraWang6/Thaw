@@ -232,6 +232,12 @@ nonisolated enum DrawnOnlyItems {
 nonisolated final class DrawnOnlyOwnerLedger: Sendable {
     static let confirmationDelay = Duration.seconds(2)
 
+    /// Whether an owner first seen silent at start has stayed silent for the confirmation delay.
+    static func hasStayedSilent(since start: ContinuousClock.Instant?, now: ContinuousClock.Instant) -> Bool {
+        guard let start else { return false }
+        return now - start >= confirmationDelay
+    }
+
     struct Confirmation: Equatable, Sendable {
         let confirmed: Set<pid_t>
         let newlyConfirmed: Set<pid_t>
@@ -276,9 +282,7 @@ nonisolated final class DrawnOnlyOwnerLedger: Sendable {
             for owner in silent where state.silentSince[owner] == nil {
                 state.silentSince[owner] = now
             }
-            let confirmed = Set(silent.filter { owner in
-                state.silentSince[owner].map { now - $0 >= Self.confirmationDelay } == true
-            })
+            let confirmed = Set(silent.filter { Self.hasStayedSilent(since: state.silentSince[$0], now: now) })
             let newlyConfirmed = confirmed.subtracting(state.confirmed)
             state.confirmed = state.confirmed.intersection(state.silentSince.keys).union(confirmed)
             return Confirmation(confirmed: confirmed, newlyConfirmed: newlyConfirmed)

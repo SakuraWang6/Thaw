@@ -99,7 +99,9 @@ struct NativeVisibilityRecoveryView: View {
         }
         .alert("Set aside the unreadable record?", isPresented: $confirmsSetAside) {
             Button("Set Aside") { model.setAsideUnreadableRecords() }
-            Button("Cancel", role: .cancel) {}
+            Button("Cancel", role: .cancel) {
+                // Closing the alert is all Cancel does; the record stays where it is.
+            }
         } message: {
             Text("Thaw keeps the file under a new name. Afterwards it can't tell which switched-off apps it hid, so you choose which ones to show and none are selected for you.")
         }

@@ -17,7 +17,9 @@ final class DragMembershipBaseline<Baseline> {
     var read: () -> Baseline? = { nil }
 
     /// Cancels a membership read still waiting from an earlier drag.
-    var cancelPendingRead: () -> Void = {}
+    var cancelPendingRead: () -> Void = {
+        // Nothing is pending until the owner supplies a read that can be cancelled.
+    }
 
     private(set) var baseline: Baseline?
 
