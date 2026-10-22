@@ -7,7 +7,6 @@
 
 import AppKit
 import MenuBarModel
-import Synchronization
 
 /// Covers the band where concealed items flash during an icon capture's reveal
 /// with MenuBarBackdrop's strip, so the bar looks unchanged and no recording
@@ -30,16 +29,6 @@ final class RevealCover {
     /// A cover never outlives this, whatever the bridge does. A stuck cover is
     /// a frozen strip of bar, which is worse than the flash it hides.
     static let maximumLifetime = Duration.seconds(4)
-    /// Room left for the pill's rounded end left of the first visible item.
-    static nonisolated let pillInset: CGFloat = 10
-    /// Gap macOS leaves between adjacent status items.
-    static let itemSpacing: CGFloat = 8
-    /// Least width an item counts for when its reported width is unusable.
-    static let minimumItemWidth: CGFloat = 24
-    /// Slack on the summed width, for estimates that come in short.
-    static let widthMargin: CGFloat = 1.25
-    /// Length of the fade at the band's left end.
-    static let fadeWidth: CGFloat = 32
 
     func performSetup(with appState: AppState) {
         self.appState = appState
@@ -84,7 +73,7 @@ final class RevealCover {
     /// Pushed out by each new holder, never pulled in.
     private func armWatchdog(_ lifetime: Duration) {
         let deadline = ContinuousClock.now.advanced(by: lifetime)
-        guard watchdogDeadline.map({ deadline > $0 }) ?? true else { return }
+        guard RevealCoverGeometry.extendsWatchdog(to: deadline, from: watchdogDeadline) else { return }
         watchdogDeadline = deadline
         watchdog?.cancel()
         watchdog = Task { [weak self] in
@@ -132,82 +121,35 @@ final class RevealCover {
     private static func coverLayout(appState: AppState, liveAnchorX: CGFloat?) -> Layout {
         let controller = appState.menuBarManager.sectionController
         let items = appState.itemManager.managedItems
-        // The Thaw icon is the leftmost visible item on most bars and does not
-        // always report itself on screen, so it is taken on its bounds alone.
         let visible = items.filter { item in
-            item.bounds.width > 0
-                && (item.tag.matchesVisibleControlItem || (item.isOnScreen && controller.section(for: item) == .visible))
+            RevealCoverGeometry.anchorsBand(
+                width: item.bounds.width,
+                isVisibleControlItem: item.tag.matchesVisibleControlItem,
+                isOnScreen: item.isOnScreen,
+                isInVisibleSection: controller.section(for: item) == .visible
+            )
         }
-        // Parked items can report a zero or shrunken width, and a leak at the
-        // far end is the one failure a user sees, so each counts at least
-        // minimumItemWidth and the total carries widthMargin.
-        let concealedWidth = items
-            .filter { !$0.tag.matchesVisibleControlItem && controller.section(for: $0) != .visible }
-            .reduce(CGFloat.zero) { $0 + max($1.bounds.width, minimumItemWidth) + itemSpacing } * widthMargin
+        let concealedWidth = RevealCoverGeometry.concealedWidth(itemWidths: items
+            .filter { item in
+                RevealCoverGeometry.isConcealed(
+                    isVisibleControlItem: item.tag.matchesVisibleControlItem,
+                    isInVisibleSection: controller.section(for: item) == .visible
+                )
+            }
+            .map(\.bounds.width))
         let screens = NSScreen.screens.map { screen in
-            ScreenBar(
+            RevealCoverGeometry.ScreenBar(
                 displayID: screen.displayID,
                 frame: screen.cgFrame,
                 height: screen.getMenuBarHeight() ?? screen.getMenuBarHeightEstimate()
             )
         }
-        return Layout(bands: bands(
+        return Layout(bands: RevealCoverGeometry.bands(
             visibleFrames: visible.map(\.bounds),
             liveAnchorX: liveAnchorX,
             screens: screens,
             concealedWidth: concealedWidth
         ))
-    }
-
-    /// A display's CG-global frame and menu bar height.
-    nonisolated struct ScreenBar: Sendable {
-        let displayID: CGDirectDisplayID
-        let frame: CGRect
-        let height: CGFloat
-    }
-
-    /// The cover band per display, from the frames of the visible items.
-    ///
-    /// Only seated frames anchor: an item parked at the x == -1 sentinel still
-    /// reports itself on screen and would leave every display uncovered. A
-    /// display without seated items mirrors the right-edge distance of the
-    /// home display, the one liveAnchorX was read on.
-    static nonisolated func bands(
-        visibleFrames: [CGRect],
-        liveAnchorX: CGFloat?,
-        screens: [ScreenBar],
-        concealedWidth: CGFloat
-    ) -> [CGDirectDisplayID: CGRect] {
-        guard concealedWidth > 0 else { return [:] }
-        let screenFrames = screens.map(\.frame)
-        var leadingEdges: [CGDirectDisplayID: CGFloat] = [:]
-        var home: (screen: ScreenBar, x: CGFloat)?
-        for frame in visibleFrames {
-            guard let seat = MenuBarItemGeometry.barScreen(holding: frame, among: screenFrames),
-                  let screen = screens.first(where: { $0.frame == seat })
-            else {
-                continue
-            }
-            leadingEdges[screen.displayID] = min(leadingEdges[screen.displayID] ?? frame.minX, frame.minX)
-            if home.map({ frame.minX < $0.x }) ?? true {
-                home = (screen, frame.minX)
-            }
-        }
-        guard let home else { return [:] }
-        if let liveAnchorX, liveAnchorX > home.screen.frame.minX, liveAnchorX < home.screen.frame.maxX {
-            leadingEdges[home.screen.displayID] = liveAnchorX
-        }
-        let homeEdge = leadingEdges[home.screen.displayID] ?? home.x
-        let offsetFromRight = home.screen.frame.maxX - (homeEdge - pillInset)
-        var bands: [CGDirectDisplayID: CGRect] = [:]
-        for screen in screens {
-            let frame = screen.frame
-            let right = leadingEdges[screen.displayID].map { $0 - pillInset } ?? frame.maxX - offsetFromRight
-            let left = max(frame.minX, right - concealedWidth - pillInset)
-            guard right > left else { continue }
-            bands[screen.displayID] = CGRect(x: left, y: frame.minY, width: right - left, height: screen.height)
-        }
-        return bands
     }
 
     // MARK: Panels
@@ -223,7 +165,7 @@ final class RevealCover {
             layer.contentsRect = backdrop.contentsRect(for: band)
             applyStyle(to: layer, on: displayID)
         }
-        panel.contentView?.layer?.mask = Self.fadeMask(width: band.width, height: band.height)
+        panel.contentView?.layer?.mask = RevealCoverGeometry.fadeMask(width: band.width, height: band.height)
         panel.setFrame(cocoa, display: false)
         if !isShowing {
             // The chevron probe hit-tests the bar, and would read the cover.
@@ -278,19 +220,6 @@ final class RevealCover {
         }
     }
 
-    /// Fades the band in over its left end. The backdrop is a hair off the
-    /// live bar, and a hard edge makes that difference a visible seam; a fade
-    /// spreads it over fadeWidth, where it reads as the bar.
-    private static func fadeMask(width: CGFloat, height: CGFloat) -> CALayer {
-        let mask = CAGradientLayer()
-        mask.frame = CGRect(x: 0, y: 0, width: width, height: height)
-        mask.startPoint = CGPoint(x: 0, y: 0.5)
-        mask.endPoint = CGPoint(x: 1, y: 0.5)
-        mask.colors = [NSColor.clear.cgColor, NSColor.black.cgColor, NSColor.black.cgColor]
-        mask.locations = [0, NSNumber(value: Double(min(fadeWidth / max(width, 1), 0.5))), 1]
-        return mask
-    }
-
     private func makePanel() -> NSPanel {
         // Not opaque: the left end fades into the live bar. Clicks go through
         // to the bar: this only has to be seen, and it is up for a second.
@@ -308,35 +237,5 @@ final class RevealCover {
         content.layerUsesCoreImageFilters = true
         panel.contentView = content
         return panel
-    }
-}
-
-/// Whether a RevealCover is up, so the nonisolated chevron probe can
-/// tell a covered hit-test from a real bar reading.
-nonisolated enum RevealCoverActivity {
-    private static let activeCount = Atomic<Int>(0)
-
-    static var isAnyMaskShowing: Bool {
-        activeCount.load(ordering: .relaxed) > 0
-    }
-
-    static func noteShown() {
-        activeCount.wrappingAdd(1, ordering: .relaxed)
-    }
-
-    /// Counts one cover down, never below zero.
-    static func noteHidden() {
-        var current = activeCount.load(ordering: .relaxed)
-        while current > 0 {
-            let (exchanged, original) = activeCount.compareExchange(
-                expected: current,
-                desired: current - 1,
-                ordering: .relaxed
-            )
-            if exchanged {
-                return
-            }
-            current = original
-        }
     }
 }
